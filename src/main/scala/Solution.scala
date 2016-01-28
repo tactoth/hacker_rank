@@ -1,90 +1,71 @@
+import scala.collection.mutable
+
 /**
- * Created by liuwei on 1/27/16.
+ * Created by liuwei on 1/28/16.
  */
 object Solution {
 
-  def main(args: Array[String]) {
-    val lines = io.Source.stdin.getLines()
+  case class Block(left: Int, top: Int, size: Int) {
+    def xrange = Range(left, left + size)
 
-    val first = lines.next()
-    val Array(rows, columns, rotations) = first.split("\\s+").map(_.toInt)
+    def yrange = Range(top, top + size)
 
-    val m = Array.ofDim[Int](rows, columns)
-
-    for ((i, row) <- Range(0, rows) zip lines.toList;
-         (j, v) <- Range(0, columns) zip row.split("\\s+").map(_.toInt)) {
-      m(i)(j) = v
+    def contains(point: (Int, Int)) = {
+      val (x, y) = point
+      x >= left && x < left + size && y >= top && y < top + size
     }
 
     /*
-    0 1 2 3 4
-    0 1 2 3 4
-    0 1 2 3 4
-    0 1 2 3 4
-
-    0 1 2 3
-    0 1 2 3
-    0 1 2 3
-    0 1 2 3
-    0 1 2 3
-    0 1 2 3
+     * 03
+     * 12
      */
-
-    case class Round(x1: Int, y1: Int, x2: Int, y2: Int) {
-      val width = x2 - x1 + 1
-      val height = y2 - y1 + 1
-      val length = (width + height) * 2 - 4
-
-      /* give vertex an id */
-      def vertex(inId: Int): (Int, Int) = {
-        var id: Int = inId % length
-
-        if (id < height)
-          return (x1, y1 + id)
-        id -= (height - 1)
-        if (id < width)
-          return (x1 + id, y2)
-        id -= (width - 1)
-        if (id < height)
-          return (x2, y2 - id)
-        id -= (height - 1)
-
-        if (!(id < width))
-          throw new RuntimeException("Error")
-        (x2 - id, y1)
+    def sub(id: Int) = {
+      val halfSize = size / 2
+      id match {
+        case 0 => Block(left, top, halfSize)
+        case 1 => Block(left, top + halfSize, halfSize)
+        case 2 => Block(left + halfSize, top + halfSize, halfSize)
+        case 3 => Block(left + halfSize, top, halfSize)
       }
     }
 
-    val roundCount = Math.min(rows, columns) / 2
-    def mirror(x: Int, y: Int) = (columns - 1 - x, rows - 1 - y)
-
-    val rounds = for ((x, y) <- Range(0, roundCount) zip Range(0, roundCount)) yield {
-      val (x2, y2) = mirror(x, y)
-      Round(x, y, x2, y2)
-    }
-
-    Console.err.println("roundCount=" + roundCount + ",rounds=" + rounds)
-
-    val result = Array.ofDim[Int](rows, columns)
-    for (round <- rounds) {
-      val r = rotations % round.length
-      Console.err.println("r=" + r)
-
-      for (i <- Range(0, round.length)) {
-        Console.err.println("i=" + i)
-
-        val j = i + r
-        val (xo, yo) = round.vertex(i)
-        val (xn, yn) = round.vertex(j)
-
-        Console.err.println(i + "->" + j + ", eqv: " +(xo, yo) + "=>" +(xn, yn))
-        result(yn)(xn) = m(yo)(xo)
+    def corner(id: Int) = {
+      id match {
+        case 0 => (left, top)
+        case 1 => (left, top + size - 1)
+        case 2 => (left + size - 1, top + size - 1)
+        case 3 => (left + size - 1, top)
       }
     }
-
-    // output the result
-    for (row <- result)
-      println(row.mkString(" "))
   }
 
+  def place(block: Block, ox: Int, oy: Int) {
+    if (block.size == 1) {
+      // nothing needs to be done
+    } else {
+      // place at the corners of the right square
+      val tri = mutable.Buffer[(Int, Int)]()
+      for (id <- Range(0, 4)) {
+        val subBlock = block.sub(id)
+        if (!subBlock.contains((ox, oy))) {
+          val (cx, cy) = subBlock.corner((id + 2) % 4)
+
+          // fill cx, cy
+          place(subBlock, cx, cy)
+          tri += ((cx, cy))
+        } else {
+          place(subBlock, ox, oy)
+        }
+      }
+      println(tri.map(p => p._1 + " " + p._2).reduce(_ + " " + _))
+    }
+  }
+
+  def main(args: Array[String]) {
+    val stdLines = io.Source.stdin.getLines()
+    val size = 1 << stdLines.next().toInt
+    val Array(x, y) = stdLines.next().split(" ").map(_.toInt)
+
+    place(Block(1, 1, size), x, y)
+  }
 }
