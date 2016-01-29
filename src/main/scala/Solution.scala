@@ -1,4 +1,4 @@
-import scala.collection.mutable
+
 
 /**
  * Created by liuwei on 1/28/16.
@@ -7,31 +7,33 @@ object Solution {
   def main(args: Array[String]) {
     val lines = io.Source.stdin.getLines()
     val n = lines.next().toInt
-    val a = (for (i <- Range(0, n)) yield lines.next().toInt).toSeq
+    val a = (for (i <- Range(0, n)) yield lines.next().toInt).toArray
 
-    val cache = mutable.Map[Int, Int]()
+    // this should be in strictly increasing order (longer but max same? no way!)
+    val maxv = Array.ofDim[Int](n)
+    maxv(0) = a.head
 
-    /**
-     * Length of longest increasing sequence ending at <code>end</code> and with <code>end</code> included
-     * @param end
-     * @return
-     */
-    def lisEndAt(end: Int): Int = {
-      cache.getOrElseUpdate(
-      end, {
-        if (end == 0) 1
-        else
-          (for (subEnd <- Range.inclusive(0, end - 1)) yield {
-            val subLis = lisEndAt(subEnd)
-            if (a(subEnd) < a(end))
-              subLis + 1
-            else
-              subLis
-          }).max
-      })
+    def indexes = Range(0, n)
+    def lis() = {
+      var len = 1
+      for (i <- Range(1, n)) {
+        val element = a(i)
+        if (element > maxv(len - 1)) {
+          maxv(len) = element
+          len += 1
+        } else {
+          val position = java.util.Arrays.binarySearch(maxv, 0, len, element) match {
+            case p if p < 0 => -(p + 1)
+            case p => p
+          }
+          maxv(position) = element
+        }
+        Console.err.println(java.util.Arrays.toString(maxv))
+      }
+      len
     }
 
-    println(Range.inclusive(0, n - 1).map(end => lisEndAt(end)).max)
+    println(lis())
   }
 
 }
