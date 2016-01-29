@@ -3,7 +3,7 @@ import scala.collection.mutable
 /**
  * Created by liuwei on 1/28/16.
  */
-object Solution {
+object FillBlocks {
 
   case class Block(left: Int, top: Int, size: Int) {
     def xrange = Range(left, left + size)
