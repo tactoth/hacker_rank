@@ -1,31 +1,37 @@
+import scala.collection.mutable
+
 /**
  * Created by liuwei on 1/28/16.
  */
 object Solution {
   def main(args: Array[String]) {
     val lines = io.Source.stdin.getLines()
-    val Array(n, m) = lines.next().split(" ").map(_.toInt)
+    val n = lines.next().toInt
+    val a = (for (i <- Range(0, n)) yield lines.next().toInt).toSeq
 
-    val BIG = Int.MaxValue / 3
+    val cache = mutable.Map[Int, Int]()
 
-    val cache = Array.fill[Int](n, n)(BIG)
-    for (i <- Range(0, n))
-      cache(i)(i) = 0
-    for (i <- Range(0, m)) {
-      val Array(x, y, r) = lines.next().split(" ").map(_.toInt)
-      cache(x - 1)(y - 1) = r
+    /**
+     * Length of longest increasing sequence ending at <code>end</code> and with <code>end</code> included
+     * @param end
+     * @return
+     */
+    def lisEndAt(end: Int): Int = {
+      cache.getOrElseUpdate(
+      end, {
+        if (end == 0) 1
+        else
+          (for (subEnd <- Range.inclusive(0, end - 1)) yield {
+            val subLis = lisEndAt(subEnd)
+            if (a(subEnd) < a(end))
+              subLis + 1
+            else
+              subLis
+          }).max
+      })
     }
 
-    for (k <- Range(0, n); i <- Range(0, n); j <- Range(0, n)) {
-      cache(i)(j) = math.min(cache(i)(j), cache(i)(k) + cache(k)(j))
-    }
-
-    val q = lines.next().toInt
-    for (i <- Range(0, q)) {
-      val Array(x, y) = lines.next().split(" ").map(_.toInt)
-      val dist = cache(x - 1)(y - 1)
-      println(if (dist < BIG) dist else -1)
-    }
-
+    println(Range.inclusive(0, n - 1).map(end => lisEndAt(end)).max)
   }
+
 }
