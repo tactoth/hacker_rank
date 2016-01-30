@@ -1,0 +1,37 @@
+
+
+object NextPerm {
+
+  def nextPermutation[T <% Ordered[T]](n: Seq[T]) = {
+    // call toSeq to avoid having to require an implicit CanBuildFrom for (A,A)
+    val pivot = n.zip(n.tail).lastIndexWhere {
+      case (first, second) => first < second
+    }
+
+    if (pivot < 0) {
+      throw new Exception()
+      // n.reverse
+    } else {
+      val successor = n.lastIndexWhere {
+        _ > n(pivot)
+      }
+      (n.take(pivot) :+ n(successor)) ++
+        ((n.slice(pivot + 1, successor) :+ n(pivot)) ++ n.drop(successor + 1)).reverse
+    }
+  }
+
+  def main(args: Array[String]) {
+    val lines = io.Source.stdin.getLines()
+    val n = lines.next().toInt
+    val inputList = for (i <- Range(0, n)) yield lines.next()
+
+    for (input <- inputList) {
+      try {
+      val output = nextPermutation(input.toSeq).mkString
+      println(output)
+      } catch {
+        case e:Exception => println("no answer")
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+
+
+/**
+ * Created by liuwei on 1/28/16.
+ */
+object LIS {
+  def main(args: Array[String]) {
+    val lines = io.Source.stdin.getLines()
+    val n = lines.next().toInt
+    val a = (for (i <- Range(0, n)) yield lines.next().toInt).toArray
+
+    // this should be in strictly increasing order (longer but max same? no way!)
+    val maxv = Array.ofDim[Int](n)
+    maxv(0) = a.head
+
+    def indexes = Range(0, n)
+    def lis() = {
+      var len = 1
+      for (i <- Range(1, n)) {
+        val element = a(i)
+        if (element > maxv(len - 1)) {
+          maxv(len) = element
+          len += 1
+        } else {
+          val position = java.util.Arrays.binarySearch(maxv, 0, len, element) match {
+            case p if p < 0 => -(p + 1)
+            case p => p
+          }
+          maxv(position) = element
+        }
+        Console.err.println(java.util.Arrays.toString(maxv))
+      }
+      len
+    }
+
+    println(lis())
+  }
+
+}
