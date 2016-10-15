@@ -1,0 +1,52 @@
+import scala.io.StdIn
+
+/**
+  * Created by liuwei on 10/15/16.
+  */
+object MaxSub {
+  def main(args: Array[String]) {
+    val cases = StdIn.readLine().trim.toInt
+    for (i <- Range(0, cases)) {
+      val n = StdIn.readLine().trim.toInt
+      val numbers = StdIn.readLine().trim.split(' ').map(_.toInt)
+
+      println(maxSub(numbers) + " " + maxSubNonCont(numbers))
+    }
+
+    /*
+    def test(input: Array[Int], expect: Int): Unit = {
+      val output = maxSub(input)
+      if (output != expect) {
+        println(s"Fail, input=$input, output=$output, expect=$expect")
+      } else {
+        println("Pass")
+      }
+    }
+
+    test(Array(1, 2, 3, 4, 5), 15)
+    test(Array(-1, -2, 3, -4, -5), 3)
+    test(Array(-100, 10, -20, 10, -100), 10)
+    test(Array(-100, 10, -8, 10, -100), 12)
+    test(Array(-100), -100)
+    test(Array(1, 2, 3, 4, 5, -15, 16), 16) */
+  }
+
+  def maxSub(a: Array[Int]) = {
+    var max = Int.MinValue
+    var maxInclusive = Int.MinValue
+    for (e <- a) {
+      maxInclusive = if (maxInclusive < 0) e else maxInclusive + e
+      max = math.max(max, maxInclusive)
+    }
+    max
+  }
+
+  def maxSubNonCont(a: Array[Int]) = {
+    val positiveSum = a.filter(_ > 0).sum
+    if (positiveSum == 0) {
+      a.max
+    } else {
+      positiveSum
+    }
+  }
+}

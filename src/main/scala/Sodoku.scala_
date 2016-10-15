@@ -2,7 +2,7 @@
 /**
  * Created by liuwei on 3/8/16.
  */
-object Solution {
+object Sodoku {
 
   val DEBUG = true
 
