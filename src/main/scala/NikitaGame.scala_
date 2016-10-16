@@ -1,0 +1,72 @@
+import scala.io.StdIn
+
+/**
+  * Created by liuwei on 10/15/16.
+  */
+object NikitaGame {
+  def main(args: Array[String]) {
+    val t = StdIn.readLine().trim.toInt
+    for (i <- Range(0, t)) {
+      StdIn.readLine()
+      val a = StdIn.readLine().trim.split("\\s+").map(_.toInt)
+      val score = if (a.forall(_ == 0)) a.length - 1 else new Partion(a).deepest
+      println(score)
+    }
+
+    /*
+    def partion(a: Array[Int]) = new Partion(a).partion(0, a.length)
+    TestUtils.test(partion, Array(4, 1, 1, 1, 1), 1)
+    TestUtils.test(partion, Array(2, 1, 1, 1, 1), 2)
+    TestUtils.test(partion, Array(0, 1, 1, 1, 1), 3)
+    TestUtils.test(partion, Array(1, 1, 1, 1, 4), 4)
+    TestUtils.test(partion, Array(1), -1)
+    TestUtils.test(partion, Array(1, 1), 1)
+    TestUtils.test(partion, Array(1, 2), -1) */
+  }
+
+  class Partion(a: Array[Int]) {
+    private val sumFrom0 = Array.fill[Int](a.length + 1)(-1)
+
+    private def sum0(end: Int): Int = {
+      if (sumFrom0(end) > 0)
+        sumFrom0(end)
+      else {
+        val result = if (end == 0) 0 else sum0(end - 1) + a(end - 1)
+        sumFrom0(end) = result
+        result
+      }
+    }
+
+    private def sum(start: Int, end: Int) = sum0(end) - sum0(start)
+
+    def partion(start: Int, end: Int): Int = {
+      def findPartionIndex(s: Int, e: Int): Int = {
+        if (s >= e)
+          return -1
+
+        val mid = (s + e) / 2
+        val leftSum = sum(start, mid)
+        val rightSum = sum(mid, end)
+
+        if (leftSum == rightSum)
+          mid
+        else if (leftSum < rightSum)
+          findPartionIndex(mid + 1, e)
+        else
+          findPartionIndex(s, mid)
+      }
+
+      findPartionIndex(start, end)
+    }
+
+    def deepest(start: Int, end: Int): Int = {
+      val mid = partion(start, end)
+      if (mid == -1)
+        return 0
+      1 + math.max(deepest(start, mid), deepest(mid, end))
+    }
+
+    def deepest: Int = deepest(0, a.length)
+  }
+
+}
