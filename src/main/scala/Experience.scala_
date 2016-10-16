@@ -1,0 +1,31 @@
+import scala.io.StdIn
+
+/**
+  * Created by liuwei on 10,/15,/16,.
+  */
+object Solution {
+  def main(args: Array[String]) {
+    val cases = StdIn.readLine().trim.toInt
+    for (i <- Range(0, cases)) {
+      StdIn.readLine()
+      val a = StdIn.readLine().trim.split("\\s+").map(_.toInt)
+      println(maxP(a))
+    }
+  }
+
+  def maxP(a: Array[Int]): Long = {
+    var sum: Long = 0
+    var remaining = a.length
+    var maxP: Long = Long.MinValue
+
+    for (e <- a.sorted.reverse) {
+      sum += e
+      remaining -= 1
+
+      val p = sum * (remaining + 1)
+      maxP = math.max(p, maxP)
+    }
+    maxP
+  }
+
+}
