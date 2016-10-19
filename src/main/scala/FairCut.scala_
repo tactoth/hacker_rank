@@ -1,12 +1,44 @@
+import scala.io.StdIn
+
 /**
   * It's too difficult, I'll give up.
   * Created by liuwei on 10/16/16.
   */
 object Solution {
   def main(args: Array[String]) {
-    val fairCut = new FairCut(Array(4, 3, 1, 2))
-    val result = fairCut.get(3, 2)
-    println(result.minDifference)
+    val Array(n, k) = StdIn.readLine().trim.split("\\s+").map(_.toInt)
+    val input = StdIn.readLine().trim.split("\\s+").map(_.toInt)
+    println(new FairCut(input).get(n, k).minDifference)
+    /*{
+      val input = Array(2, 4, 6, 8)
+      val fairCut = new FairCut(input)
+
+      def printComponent(c: State => Int): Unit = {
+        for (iCount <- Range.inclusive(0, input.length)) {
+          for (end <- Range.inclusive(0, input.length)) {
+            val result = fairCut.get(end, iCount)
+            print((if (result == null) "/" else c(result)) + "\t")
+          }
+          println()
+        }
+      }
+
+      println("MinDiff")
+      printComponent(_.minDifference)
+
+      println("SumInI")
+      printComponent(_.sumInI)
+
+      println("SumInJ")
+      printComponent(_.sumInJ)
+
+      println(fairCut.get(4, 2))
+    }
+    {
+      val fairCut = new FairCut(Array(3, 3, 3, 1))
+      val result = fairCut.get(4, 1)
+      println(result.minDifference)
+    } */
   }
 
   def getOrElseUpdate[T](a: Array[T], index: Int, emptyValue: T)(compute: => T) = {
@@ -27,10 +59,10 @@ object Solution {
     value
   }
 
+  case class State(sumInI: Int, sumInJ: Int, minDifference: Int) {}
+
   class FairCut(input: Array[Int]) {
     val a = input.sorted
-
-    Console.println("input: " + a.toSeq)
 
     val length = a.length
     private val sum_ = Array.fill[Int](length + 1)(-1)
@@ -41,21 +73,28 @@ object Solution {
 
     def sum(start: Int, end: Int): Int = sum(end) - sum(start)
 
-    case class State(sumInI: Int, sumInJ: Int, minDifference: Int) {}
 
     private val states_ = Array.ofDim[State](length + 1, length + 1)
 
-    def diff(range: Range, sumOfAnotherGroup: Int, countOfAnotherGroup: Int) = range.map(a(_) * countOfAnotherGroup - sumOfAnotherGroup).sum
+    def diff(range: Range, countOfAnotherGroup: Int, sumOfAnotherGroup: Int) = {
+      val result = range.map(a(_) * countOfAnotherGroup - sumOfAnotherGroup).sum
+      // Console.err.println(s"diff($range, $sumOfAnotherGroup, $countOfAnotherGroup) == $result")
+      result
+    }
 
     def sum(range: Range): Int = sum(range.start, range.end)
 
     def get(end: Int, iCount: Int): State = {
       getOrElseUpdate(states_, end, iCount, null) {
-        Console.err.println(s"get: end: $end, iCount: $iCount)")
+        // Console.err.println(s"get: end: $end, iCount: $iCount)")
 
         val resultState = {
-          if (iCount == 0 || end == 0) {
+          if (end == 0) {
+            State(0, 0, 0)
+          } else if (iCount == 0) {
             State(0, sum(end), 0)
+          } else if (iCount == end) {
+            State(sum(end), 0, 0)
           } else {
             val last = end - 1
             val lastElement = a(last)
@@ -71,11 +110,11 @@ object Solution {
                   val additionalDiffInJ = diff(Range(subend, last), oldICount, subState.sumInI)
                   val addionalSumInJ = sum(subend, last)
 
-                  Console.err.println(s"subEnd:$subend, last:$last additionalDiffInJ: $additionalDiffInJ, addionalSumInJ:$addionalSumInJ")
+                  // Console.err.println(s"subEnd:$subend, last:$last additionalDiffInJ: $additionalDiffInJ, addionalSumInJ:$addionalSumInJ")
 
                   val difference = subState.minDifference +
                     additionalDiffInJ + // those in J need to diff with previous
-                    diff(Range(last, end), end - oldICount, subState.sumInJ + addionalSumInJ)
+                    diff(Range(last, end), last - oldICount, subState.sumInJ + addionalSumInJ)
 
                   if (minState == null || minState.minDifference > difference) {
                     minState = State(subState.sumInI + lastElement, subState.sumInJ + addionalSumInJ, difference)
@@ -104,7 +143,7 @@ object Solution {
           }
         }
 
-        Console.err.println(s"end: $end, iCount: $iCount) => $resultState")
+        // Console.err.println(s"end: $end, iCount: $iCount) => $resultState")
         resultState
       }
 
