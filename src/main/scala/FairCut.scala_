@@ -45,42 +45,58 @@ object Solution {
 
     private val states_ = Array.ofDim[State](length + 1, length + 1)
 
+    def diff(range: Range, sumOfAnotherGroup: Int, countOfAnotherGroup: Int) = range.map(a(_) * countOfAnotherGroup - sumOfAnotherGroup).sum
+
+    def sum(range: Range): Int = sum(range.start, range.end)
+
     def get(end: Int, iCount: Int): State = {
       getOrElseUpdate(states_, end, iCount, null) {
+        Console.err.println(s"get: end: $end, iCount: $iCount)")
+
         val resultState = {
-          if (iCount == 0) {
+          if (iCount == 0 || end == 0) {
             State(0, sum(end), 0)
-          } else if (iCount == end) {
-            State(sum(end), 0, 0)
           } else {
             val last = end - 1
             val lastElement = a(last)
             var minState: State = null
 
-            // first try when put $end element to I
             {
+              // first try when put $end element to I
               val oldICount = iCount - 1
-              for (subend <- Range.inclusive(0, last)) {
+              for (subend <- Range.inclusive(oldICount, last)) {
+
                 val subState = get(subend, oldICount)
                 if (subState != null) {
-                  val jCount = end - oldICount
-                  val difference = subState.minDifference + lastElement * jCount - subState.sumInJ
+                  val additionalDiffInJ = diff(Range(subend, last), oldICount, subState.sumInI)
+                  val addionalSumInJ = sum(subend, last)
+
+                  Console.err.println(s"subEnd:$subend, last:$last additionalDiffInJ: $additionalDiffInJ, addionalSumInJ:$addionalSumInJ")
+
+                  val difference = subState.minDifference +
+                    additionalDiffInJ + // those in J need to diff with previous
+                    diff(Range(last, end), end - oldICount, subState.sumInJ + addionalSumInJ)
 
                   if (minState == null || minState.minDifference > difference) {
-                    minState = State(subState.sumInI + lastElement, subState.sumInJ, difference)
+                    minState = State(subState.sumInI + lastElement, subState.sumInJ + addionalSumInJ, difference)
                   }
                 }
               }
             }
 
-            // try to put $end to J
-            for (subend <- Range.inclusive(0, last)) {
-              val subState = get(subend, iCount)
-              if (subState != null) {
-                val difference = subState.minDifference + lastElement * iCount - subState.sumInI
-                if (minState == null || minState.minDifference > difference) {
-                  minState = State(subState.sumInI, subState.sumInJ + lastElement, difference)
+            for (subend <- Range.inclusive(iCount, last)) {
+              {
+                // try to put $end to J
+                val subState = get(subend, iCount)
+                if (subState != null) {
+                  val difference = subState.minDifference +
+                    diff(Range(subend, end), iCount, subState.sumInI)
+
+                  if (minState == null || minState.minDifference > difference) {
+                    minState = State(subState.sumInI, subState.sumInJ + sum(subend, end), difference)
+                  }
                 }
+
               }
             }
 
@@ -88,10 +104,10 @@ object Solution {
           }
         }
 
-
         Console.err.println(s"end: $end, iCount: $iCount) => $resultState")
         resultState
       }
+
     }
 
   }
