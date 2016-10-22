@@ -1,0 +1,75 @@
+import scala.io.StdIn
+
+/**
+  * Created by liuwei on 10/21/16.
+  */
+object Solution {
+  def main(args: Array[String]) {
+    val Array(height, width) = StdIn.readLine().split("\\s").map(_.toInt)
+    val m = Array.ofDim[Int](height, width)
+    for (y <- Range(0, height)) {
+      val line = StdIn.readLine()
+      for (x <- Range(0, width))
+        m(y)(x) = if (line(x) == '.') 0 else 1
+    }
+
+    val reachX = Array.ofDim[Int](height, width + 1)
+    val reachY = Array.ofDim[Int](height + 1, width)
+
+    for (y <- Range(0, height)) {
+      var xs = 0
+      for (x <- Range.inclusive(0, width)) {
+        if (x == width || m(y)(x) == 1) {
+          for (xs_ <- Range.inclusive(xs, x)) {
+            reachX(y)(xs_) = x
+          }
+          xs = x + 1
+        }
+      }
+    }
+
+    for (x <- Range(0, width)) {
+      var ys = 0
+      for (y <- Range.inclusive(0, height)) {
+        if (y == height || m(y)(x) == 1) {
+          for (ys_ <- Range.inclusive(ys, y)) {
+            reachY(ys_)(x) = y
+          }
+          ys = y + 1
+        }
+      }
+    }
+
+
+    def valid(xs: Int, ys: Int, xe: Int, ye: Int) = {
+      xe <= reachX(ye - 1)(xs) &&
+        ye <= reachY(ys)(xe - 1)
+    }
+
+    def perimeter(xs: Int, ys: Int, xe: Int, ye: Int) = {
+      (xe - xs) * 2 + (ye - ys) * 2 - 4
+    }
+
+    var maxPerimeter = 0
+    for (ys <- Range(0, height - 1)) {
+      for (xs <- Range(0, width - 1)) {
+        val yeMax = reachY(ys)(xs)
+        val xeMax = reachX(ys)(xs)
+        if (perimeter(xs, ys, xeMax, yeMax) > maxPerimeter) {
+          for (ye <- Range.inclusive(ys + 2, yeMax)) {
+            for (xe <- Range.inclusive(xs + 2, xeMax)) {
+              if (valid(xs, ys, xe, ye)) {
+                val p = perimeter(xs, ys, xe, ye)
+                if (p > maxPerimeter) {
+                  maxPerimeter = math.max(maxPerimeter, p)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    println(if (maxPerimeter == 0) "impossible" else maxPerimeter)
+  }
+}
