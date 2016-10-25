@@ -26,8 +26,8 @@ object Sodoku {
 
   def getSubId(x: Int, y: Int) = (y / 3) * 3 + (x / 3)
 
-  def add(sets: Array[Int], index: Int, v: Int): Unit = {
-    val updated = bitsetAdd(sets(index), v)
+  def add(sets: Array[Int], index: Int, key: Int): Unit = {
+    val updated = bitsetAdd(sets(index), key)
     sets(index) = updated
   }
 
@@ -73,12 +73,12 @@ object Sodoku {
       val undetermined = new WithCells(m) {
         override def onCell(x: Int, y: Int, subId: Int, valueSet: Int): Int = {
           if (bitsetSize(valueSet) == 1) {
-            val v = bitsetMinValue(valueSet)
+            val key = bitsetMinValue(valueSet)
 
 
-            add(rowFills, y, v)
-            add(colFills, x, v)
-            add(subFills, subId, v)
+            add(rowFills, y, key)
+            add(colFills, x, key)
+            add(subFills, subId, key)
             0
           }
           else
@@ -149,20 +149,20 @@ object Sodoku {
       new WithCells(m) {
         override def onCell(x: Int, y: Int, subId: Int, valueSet: Int): Int = {
           if (bitsetSize(valueSet) == 1) {
-            val v = bitsetMinValue(valueSet)
+            val key = bitsetMinValue(valueSet)
 
-            def addWithCheck(label: String, sets: Array[Int], index: Int, v: Int): Unit = {
+            def addWithCheck(label: String, sets: Array[Int], index: Int, key: Int): Unit = {
               val old = sets(index)
-              add(sets, index, v)
+              add(sets, index, key)
 
-              err(s"label=$label, index=$index, x=$x, y=$y, nextValue=$v, set=${dumpSet(old)}")
+              err(s"label=$label, index=$index, x=$x, y=$y, nextValue=$key, set=${dumpSet(old)}")
               if (sets(index) == old)
-                throw new DuplicateCheckException(s"label=$label, index=$index, x=$x, y=$y, nextValue=$v, set=${dumpSet(old)}")
+                throw new DuplicateCheckException(s"label=$label, index=$index, x=$x, y=$y, nextValue=$key, set=${dumpSet(old)}")
             }
 
-            addWithCheck("row", rowFills, y, v)
-            addWithCheck("col", colFills, x, v)
-            addWithCheck("sub", subFills, subId, v)
+            addWithCheck("row", rowFills, y, key)
+            addWithCheck("col", colFills, x, key)
+            addWithCheck("sub", subFills, subId, key)
           }
           0
         }
@@ -189,14 +189,14 @@ object Sodoku {
         var solutionFound = false
         while (!solutionFound && bitsetValue != 0) {
           // pop one bit
-          val v = bitsetMinValue(bitsetValue)
-          bitsetValue = bitsetRemove(bitsetValue, v)
+          val key = bitsetMinValue(bitsetValue)
+          bitsetValue = bitsetRemove(bitsetValue, key)
 
-          err(s"trying $v at ($x, $y)...")
+          err(s"trying $key at ($x, $y)...")
 
           // deep clone!
           val subM = m.map(_.clone())
-          subM(y)(x) = bitsetAdd(0, v)
+          subM(y)(x) = bitsetAdd(0, key)
 
           solutionFound = solutionFound || findSolutionFrom(subM)
         }
@@ -211,8 +211,8 @@ object Sodoku {
     // stores all valid values
     val m = Array.ofDim[Int](9, 9)
     for ((y, line) <- Range(0, 9) zip lines.toIterable; x <- Range(0, 9)) {
-      val v = line.charAt(x).toString.toInt
-      m(y)(x) = if (v == 0) bitsetAll(9) else bitsetAdd(0, v - 1)
+      val key = line.charAt(x).toString.toInt
+      m(y)(x) = if (key == 0) bitsetAll(9) else bitsetAdd(0, key - 1)
     }
 
 

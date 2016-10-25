@@ -6,7 +6,7 @@ object PowerE {
   def f(x: Float): Float = {
     // Compute and Return the value of e^x
     def facto(n: Int): Int = if (n == 1) 1 else n * facto(n - 1)
-    def sq(v: Float) = v * v
+    def sq(key: Float) = key * key
     def pow(b: Float, n: Int): Float = n match {
       case 0 => 1
       case n if n % 2 == 0 => sq(pow(b, n / 2))

@@ -12,8 +12,8 @@ object MatRotation {
     val m = Array.ofDim[Int](rows, columns)
 
     for ((i, row) <- Range(0, rows) zip lines.toList;
-         (j, v) <- Range(0, columns) zip row.split("\\s+").map(_.toInt)) {
-      m(i)(j) = v
+         (j, key) <- Range(0, columns) zip row.split("\\s+").map(_.toInt)) {
+      m(i)(j) = key
     }
 
     /*
