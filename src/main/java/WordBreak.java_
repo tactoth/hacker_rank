@@ -1,0 +1,65 @@
+import com.google.common.collect.Sets;
+
+import java.util.*;
+
+public class Solution {
+
+    static class C {
+        final String s;
+        final Set<String> dict;
+        final List<String>[] cache;
+
+        C(String s, Set<String> dict) {
+            this.s = s;
+            this.dict = dict;
+            //noinspection unchecked
+            cache = new List[s.length()];
+        }
+
+        private List<String> get(int start) {
+            if (start >= s.length())
+                return Collections.emptyList();
+
+            if (cache[start] == null) {
+                List<String> result =
+                        new ArrayList<>();
+                for (String w : dict) {
+                    String sub = s.substring(start);
+                    if (sub.startsWith(w)) {
+                        if (start + w.length() == s.length())
+                            result.add(w);
+                        else {
+                            // must has remaining
+                            for (String subResult : get(start + w.length())) {
+                                result.add(w + " " + subResult);
+                            }
+                        }
+                    }
+                }
+                cache[start] = result;
+            }
+            return cache[start];
+        }
+    }
+
+    public List<String> wordBreak(String s, Set<String> wordDict) {
+        return new C(s, wordDict).get(0);
+    }
+
+    public static void main(String[] args) {
+        // should all be empty
+        System.out.println(new Solution().wordBreak("", Sets.newHashSet("a")));
+        System.out.println(new Solution().wordBreak("a", Sets.newHashSet("a")));
+        System.out.println(new Solution().wordBreak("b", Sets.newHashSet("a")));
+
+        // 1
+        System.out.println(new Solution().wordBreak("aaaa", Sets.newHashSet("a")));
+
+        // 0
+        System.out.println(new Solution().wordBreak("aaaab", Sets.newHashSet("a")));
+
+        System.out.println(new Solution().wordBreak("aabaab", Sets.newHashSet("a", "b", "ab")));
+        System.out.println(new Solution().wordBreak("catsanddog", Sets.newHashSet("cat", "cats", "and", "sand", "dog")));
+
+    }
+}

@@ -1,0 +1,71 @@
+/**
+ * Created by liuwei on 10/25/16.
+ */
+public class Solution {
+    static class C {
+        final int[][] dungeon;
+        private final int height;
+        private final int width;
+        private final int[][] cache;
+
+        C(int[][] dungeon) {
+            this.dungeon = dungeon;
+            height = dungeon.length;
+            width = dungeon[0].length; // assume!
+            cache = new int[height][width];
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++)
+                    cache[y][x] = -1;
+            }
+        }
+
+        int minHp2Bal(int x, int y) {
+            if (cache[y][x] == -1) {
+                if (x + 1 == width && y + 1 == height)
+                    cache[y][x] = dungeon[y][x] >= 0 ? 0 : -dungeon[y][x]; // the corner TODO: verify
+                else {
+                    // TODO: mem
+                    int minHistorical = Integer.MAX_VALUE;
+                    if (x + 1 < width)
+                        minHistorical = Math.min(minHp2Bal(x + 1, y), minHistorical);
+                    if (y + 1 < height)
+                        minHistorical = Math.min(minHp2Bal(x, y + 1), minHistorical);
+                    cache[y][x] = Math.max(0, minHistorical - dungeon[y][x]);
+                }
+            }
+            return cache[y][x];
+        }
+    }
+
+    public int calculateMinimumHP(int[][] dungeon) {
+        return new C(dungeon).minHp2Bal(0, 0) + 1;
+    }
+
+    public static void main(String[] args) {
+        {
+            int a[][] = {
+                    {-2, -3, 3},
+                    {-5, -10, 1},
+                    {10, 30, -5}
+            };
+            System.out.println(new Solution().calculateMinimumHP(a));
+        }
+
+        {
+            int a[][] = {
+                    {1, 1},
+                    {1, 1}
+            };
+            System.out.println(new Solution().calculateMinimumHP(a));
+        }
+
+        {
+            int a[][] = {
+                    {-2, -8},
+                    {-4, -1},
+            };
+            System.out.println(new Solution().calculateMinimumHP(a));
+        }
+
+    }
+}

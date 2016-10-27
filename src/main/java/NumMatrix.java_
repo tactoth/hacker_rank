@@ -1,0 +1,78 @@
+import java.util.Objects;
+
+public class NumMatrix {
+
+    private final int[][] matrix;
+    private final int[][] mem;
+    private final int height;
+    private final int width;
+
+    public NumMatrix(int[][] matrix) {
+        this.matrix = matrix;
+        height = matrix.length;
+        width = height == 0 ? 0 : matrix[0].length;
+        mem = new int[height + 1][width + 1];
+
+        for (int i = 0; i < mem.length; i++) {
+            for (int j = 0; j < mem[i].length; j++) {
+                mem[i][j] = Integer.MIN_VALUE;
+            }
+        }
+    }
+
+    public int getSum(int xEnd, int yEnd) {
+        if (mem[yEnd][xEnd] == Integer.MIN_VALUE) { // assumption here
+            if (xEnd <= 0 || yEnd <= 0)
+                mem[yEnd][xEnd] = 0;
+            else
+                mem[yEnd][xEnd] = getSum(xEnd - 1, yEnd) + getSum(xEnd, yEnd - 1) - getSum(xEnd - 1, yEnd - 1) + matrix[yEnd - 1][xEnd - 1];
+        }
+        return mem[yEnd][xEnd];
+    }
+
+    public int sumRegion(int ys, int xs, int ye, int xe) {
+        if (width == 0 || height == 0)
+            return 0;
+
+        ye++;
+        xe++;
+        return getSum(xe, ye) - getSum(xs, ye) - getSum(xe, ys) + getSum(xs, ys);
+    }
+
+    public static void main(String[] args) {
+        {
+            int m[][] = {
+                    {3, 0, 1, 4, 2},
+                    {5, 6, 3, 2, 1},
+                    {1, 2, 0, 1, 5},
+                    {4, 1, 0, 1, 7},
+                    {1, 0, 3, 0, 5}
+            };
+
+            NumMatrix numMatrix = new NumMatrix(m);
+            test(numMatrix.sumRegion(2, 1, 4, 3), 8);
+            test(numMatrix.sumRegion(1, 1, 2, 2), 11);
+            test(numMatrix.sumRegion(1, 2, 2, 4), 12);
+        }
+
+        {
+            int m[][] = {};
+            NumMatrix numMatrix = new NumMatrix(m);
+            test(numMatrix.sumRegion(0, 0, 0, 0), 0);
+        }
+    }
+
+    static void test(Object actual, Object expected) {
+        if (Objects.equals(actual, expected)) {
+            System.out.println("Pass");
+        } else {
+            System.err.println("Actual: " + actual + ", expected: " + expected);
+        }
+    }
+}
+
+
+// Your NumMatrix object will be instantiated and called as such:
+// NumMatrix numMatrix = new NumMatrix(matrix);
+// numMatrix.sumRegion(0, 1, 2, 3);
+// numMatrix.sumRegion(1, 2, 3, 4);

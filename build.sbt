@@ -10,3 +10,5 @@ lazy val root = project in file(".")
 scalaVersion := "2.11.6"
 
 
+libraryDependencies += "com.google.guava" % "guava" % "18.0"
+

@@ -1,0 +1,60 @@
+import java.util.Arrays;
+
+public class Solution {
+    static class C {
+        final String s;
+        final int[] mem;
+
+        C(String s) {
+            this.s = s;
+            this.mem = new int[s.length() + 1];
+            Arrays.fill(this.mem, -1);
+        }
+
+        int get(int start) {
+            if (mem[start] == -1) {
+                int result;
+                if (start == s.length()) {
+                    return 0;
+                } else if (start + 1 == s.length()) {
+                    result = s.charAt(start) == '0' ? 0 : 1;
+                } else { // start + 2 <= s.length
+                    boolean atEnd = start + 2 == s.length();
+
+                    int a = s.charAt(start) - '0', b = s.charAt(start + 1) - '0';
+                    if (a == 0)
+                        result = 0;
+                    else {
+                        int v = a * 10 + b;
+                        if (v <= 26) {
+                            result = (atEnd ? 1 : get(start + 2)) + get(start + 1);
+                        } else {
+                            result = get(start + 1);
+                        }
+                    }
+                }
+                mem[start] = result;
+            }
+            return mem[start];
+        }
+    }
+
+    public int numDecodings(String s) {
+        return new C(s).get(0);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new Solution().numDecodings("11"));
+        System.out.println(new Solution().numDecodings("0"));
+        System.out.println(new Solution().numDecodings("000"));
+        System.out.println(new Solution().numDecodings("001"));
+        System.out.println(new Solution().numDecodings("01"));
+        System.out.println(new Solution().numDecodings("101"));
+        System.out.println(new Solution().numDecodings("100"));
+        System.out.println(new Solution().numDecodings("1"));
+        System.out.println(new Solution().numDecodings("10"));
+        System.out.println(new Solution().numDecodings("12"));
+        System.out.println(new Solution().numDecodings("99999"));
+        System.out.println(new Solution().numDecodings("111"));
+    }
+}
