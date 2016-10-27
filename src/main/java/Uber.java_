@@ -1,0 +1,175 @@
+import java.util.Objects;
+
+/**
+ * Write a comparator that takes two strings and returns a standard integer value:
+ * something negative if the first string is "smaller,"
+ * zero if they are "equal,"
+ * and something positive if the first string is "larger."
+ * We want to agree with the standard comparator for all cases except one:
+ * if we encounter a consecutive string of integers, we want to read it for its numeric value,
+ * and use that as the comparison.
+ * <p>
+ * All digits are less than non-digits. e.g. 10 < 'a'
+ * "" < "100" => true
+ * "-10" < "0"
+ * <p>
+ * "-10-10-10"
+ * "-----"
+ * "abc-10"
+ * <p>
+ * ab ? a10b
+ * <p>
+ * ab
+ * a123
+ * <p>
+ * "00000" -> "000"
+ * <p>
+ * For instance, in the standard string comparator, "a10b" comes before "a2b", because 'a' == 'a' and '1' < '2'.
+ * In our string ordering, I want to reverse this, instead parsing it so that we see 'a' == 'a', but 10 > 2.
+ */
+
+class Solution {
+
+    static class Seg {
+        boolean isNumber;
+        char c;
+        String v;
+
+        public int len() {
+            return isNumber ? v.length() : 1;
+        }
+
+        public Seg(boolean isNumber, char c, String v) {
+            this.isNumber = isNumber;
+            this.c = c;
+            this.v = v;
+        }
+    }
+
+    static void test(Object a, Object e) {
+        if (Objects.equals(a, e)) {
+            System.out.println("Pass");
+        } else {
+            System.out.println("Actual: " + a + ", expected: " + e);
+        }
+    }
+
+    public static void main(String[] args) {
+        test(compare("a10b", "a2b"), 1);
+        test(compare("a10b", "a11b"), -1);
+        test(compare("a10b10", "a10b9"), 1);
+        test(compare("a10b", "a10"), 1);
+        test(compare("", ""), 0);
+        test(compare("a000", "a00"), 0);
+        test(compare("a0000001", "a00"), 1);
+        test(compare("", "a"), -1);
+        test(compare("a", ""), 1);
+        test(compare("10", "9"), 1);
+        test(compare("a100b", "a1000b"), -1);
+        test(compare("-0", "0"), 0);
+        test(compare("----", "----a"), -1);
+        test(compare("--1", "--2"), 1);
+        test(compare("a-100b", "a100b"), -1);
+        test(compare("a-99999999999999999999999999999999999999999999999999999999999999999999999999999999b", "a-99999999999999999999999999999999999999999999999999999999999999999999999999999998b"), -1);
+        test(compare("a99999999999999999999999999999999999999999999999999999999999999999999999999999999b", "a-99999999999999999999999999999999999999999999999999999999999999999999999999999998b"), 1);
+        test(compare("a99999999999999999999999999999999999999999999999999999999999999999999999999999999b", "a99999999999999999999999999999999999999999999999999999999999999999999999999999998b"), 1);
+    }
+
+    public static int compare(String s1, String s2) {
+        int i = 0, j = 0;
+        for (; i < s1.length() && j < s2.length(); ) {
+            Seg seg1 = getSeg(s1, i);
+            Seg seg2 = getSeg(s2, j);
+
+            int r = compare(seg1, seg2);
+            if (r != 0)
+                return r;
+
+            i += seg1.len();
+            j += seg2.len();
+        }
+
+        boolean endOf1 = i == s1.length(), endOf2 = j == s2.length();
+        if (endOf1 == endOf2)
+            return 0;
+        else if (endOf1)
+            return -1;
+        else
+            return 1;
+    }
+
+    public static int compare(Seg s1, Seg s2) {
+        if (s1.isNumber != s2.isNumber) {
+            if (s1.isNumber) return -1;
+            else return 1;
+        }
+
+        if (!s1.isNumber)
+            return s1.c - s2.c;
+
+        // compare as number
+        return compareNumbers(s1.v, s2.v);
+    }
+
+    public static int compareNumbers(String s1, String s2) {
+        boolean isMinus1 = s1.startsWith("-");
+        boolean isMinus2 = s2.startsWith("-"); // len at least 2
+        // -0 == 0 (Done)
+
+        int start1 = isMinus1 ? 1 : 0;
+        int start2 = isMinus2 ? 1 : 0;
+
+        // remove precedding zeros
+        while (start1 < s1.length() && s1.charAt(start1) == '0') start1++;
+        while (start2 < s2.length() && s2.charAt(start2) == '0') start2++;
+
+        int l1 = s1.length() - start1, l2 = s2.length() - start2;
+        if (l1 == l2 && l1 == 0)
+            return 0;
+
+        if (isMinus1 != isMinus2) {
+            if (isMinus1)
+                return -1;
+            else
+                return 1;
+        }
+
+        int numResult = 0;
+        if (l1 != l2) {
+            if (l1 < l2)
+                numResult = -1;
+            else
+                numResult = 1;
+        } else {
+            for (int i = start1, j = start2; i < s1.length(); i++, j++) {
+                int c1 = s1.charAt(i);
+                int c2 = s2.charAt(j);
+                if (c1 < c2) {
+                    numResult = -1;
+                    break;
+                } else if (c1 > c2) {
+                    numResult = 1;
+                    break;
+                }
+
+            }
+        }
+        return isMinus1 ? -numResult : numResult;
+    }
+
+
+    static Seg getSeg(String s, int index) {
+        char c = s.charAt(index);
+        if ((c == '-' && index + 1 < s.length() && Character.isDigit(s.charAt(index + 1))) ||           // '-'s followed by number
+                Character.isDigit(c)) {
+            int end = index + 1;
+            while (end < s.length() && Character.isDigit(s.charAt(end))) {
+                end++;
+            }
+            return new Seg(true, '0', s.substring(index, end));
+        } else {
+            return new Seg(false, c, null);
+        }
+    }
+
+}
