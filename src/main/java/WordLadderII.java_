@@ -21,9 +21,10 @@ public class Solution {
         }
     }
 
-    public List<List<String>> findLadders(String beginWord, String endWord, Set<String> wordList) {
-        wordList.add(beginWord);
-        wordList.add(endWord);
+    public List<List<String>> findLadders(String beginWord, String endWord, Set<String> wordSet) {
+        wordSet.add(beginWord);
+        wordSet.add(endWord);
+        List<String> wordList = new ArrayList<>(wordSet);
 
         Queue<String> q = new LinkedList<>();
         q.add(beginWord);
@@ -40,9 +41,10 @@ public class Solution {
             adj.put(s, new ArrayList<>());
         }
 
-        // TODO: fix this
-        for (String a : wordList) {
-            for (String b : wordList) {
+        for (int i = 0; i < wordList.size(); i++) {
+            String a = wordList.get(i);
+            for (int j = i + 1; j < wordList.size(); j++) {
+                String b = wordList.get(j);
                 if (adj(a, b)) {
                     adj.get(a).add(b);
                     adj.get(b).add(a);
