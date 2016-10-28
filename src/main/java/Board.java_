@@ -1,0 +1,138 @@
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Solution {
+    static class P {
+        final int x, y;
+
+        P(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    interface IBFSCallback {
+        void onPoint(P p);
+    }
+
+    static class C {
+        final char[][] board;
+        private final int height;
+        private final int width;
+
+        C(char[][] board) {
+            this.board = board;
+            height = board.length;
+            width = height == 0 ? 0 : board[0].length;
+        }
+
+        boolean bfs(int x, int y, boolean quitOnMetEdge, IBFSCallback callback) {
+            Queue<P> q = new LinkedList<>();
+            q.add(new P(x, y));
+            boolean[][] visited = new boolean[height][width];
+            visited[y][x] = true;
+
+            while (!q.isEmpty()) {
+                P p = q.poll();
+                if (atEdge(p.x, p.y) && quitOnMetEdge)
+                    return true;
+
+                if (callback != null)
+                    callback.onPoint(p);
+                for (int xx = Math.max(0, p.x - 1); xx < Math.min(p.x + 2, width); xx++) {
+                    for (int yy = Math.max(0, p.y - 1); yy < Math.min(p.y + 2, height); yy++) {
+                        if ((xx == p.x || yy == p.y) && board[yy][xx] == 'O') {
+                            if (!visited[yy][xx]) {
+                                visited[yy][xx] = true;
+                                q.add(new P(xx, yy));
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        boolean atEdge(int x, int y) {
+            return x == 0 || y == 0 || x + 1 == width || y + 1 == height;
+        }
+
+        void solve() {
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    if (board[y][x] == 'O') {
+                        // see if from this point it's all surrounded
+                        if (bfs(x, y, true, null)) {
+                            bfs(x, y, false, p -> {
+                                board[p.y][p.x] = 'o'; // avoid reentrance
+                            });
+                        } else {
+                            // all surrounded
+                            bfs(x, y, false, p -> {
+                                board[p.y][p.x] = 'X'; // avoid reentrance
+                            });
+                        }
+                    }
+                }
+            }
+
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    if (board[y][x] == 'o')
+                        board[y][x] = 'O';
+                }
+            }
+        }
+    }
+
+    public void solve(char[][] board) {
+        new C(board).solve();
+    }
+
+    static String toString(char[][] b) {
+        StringBuilder sb = new StringBuilder();
+        for (char[] row : b) {
+            if (sb.length() > 0)
+                sb.append('\n');
+            sb.append(Arrays.toString(row));
+        }
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+//        {
+//            char[][] b = {
+//                    {'O'}
+//            };
+//            new Solution().solve(b);
+//            System.out.println(toString(b));
+//        }
+//        {
+//            char[][] b = {
+//                    {'X'}
+//            };
+//            new Solution().solve(b);
+//            System.out.println(toString(b));
+//        }
+//        {
+//            char[][] b = {
+//                    {'X', 'X', 'X'},
+//                    {'X', 'O', 'X'},
+//                    {'X', 'X', 'X'}
+//            };
+//            new Solution().solve(b);
+//            System.out.println(toString(b));
+//        }
+        {
+            char[][] b = {
+                    {'X', 'X', 'X', 'X'},
+                    {'X', 'O', 'O', 'X'},
+                    {'X', 'X', 'O', 'X'},
+                    {'X', 'O', 'X', 'X'},
+            };
+            new Solution().solve(b);
+            System.out.println(toString(b));
+        }
+    }
+}
