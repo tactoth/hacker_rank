@@ -1,0 +1,100 @@
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Definition for a point.
+ * class Point {
+ * int x;
+ * int y;
+ * Point() { x = 0; y = 0; }
+ * Point(int a, int b) { x = a; y = b; }
+ * }
+ */
+public class Solution {
+    static class C {
+        private final List<Point> uniquePoints;
+        private final List<Integer> freq;
+
+        // private final boolean[][][] inline;
+
+        C(Point[] points) {
+            uniquePoints = new ArrayList<>();
+            freq = new ArrayList<>();
+
+            // build unique points
+            for (Point p : points) {
+                int index = -1;
+                for (int i = 0; i < uniquePoints.size(); i++) {
+                    Point up = uniquePoints.get(i);
+                    if (samePoint(up, p)) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index == -1) {
+                    uniquePoints.add(p);
+                    freq.add(1);
+                } else {
+                    freq.set(index, freq.get(index) + 1);
+                }
+            }
+        }
+
+        private static boolean inALine(Point a, Point b, Point c) {
+            return a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y) == 0;
+        }
+
+        private static boolean samePoint(Point a, Point b) {
+            return a.x == b.x && a.y == b.y;
+        }
+
+        int solve() {
+            int uniquePointCount = uniquePoints.size();
+            if (uniquePointCount <= 2) {
+                int sum = 0;
+                for (int f : freq) {
+                    sum += f;
+                }
+                return sum;
+            }
+
+            // 3+ points
+            int result = 0;
+            for (int i = 0; i < uniquePointCount; i++) {
+                Point a = uniquePoints.get(i);
+                int pointsAtA = freq.get(i);
+                for (int j = i + 1; j < uniquePointCount; j++) {
+                    Point b = uniquePoints.get(j);
+                    int pointsAtB = freq.get(j);
+
+                    int pointsInThisLine = pointsAtA + pointsAtB;
+                    for (int k = j + 1; k < uniquePointCount; k++) {
+                        boolean inline = inALine(a, b, uniquePoints.get(k));
+                        if (inline) {
+                            pointsInThisLine += freq.get(k);
+                        }
+                    }
+                    result = Math.max(pointsInThisLine, result);
+                }
+            }
+
+            return result;
+        }
+
+    }
+
+    public int maxPoints(Point[] points) {
+        return new C(points).solve();
+    }
+
+    public static void main(String[] args) {
+        TestUtil.test(new Solution().maxPoints(new Point[]{}), 0);
+        TestUtil.test(new Solution().maxPoints(new Point[]{new Point(0, 0), new Point(0, 0), new Point(0, 0), new Point(0, 0)}), 4);
+        TestUtil.test(new Solution().maxPoints(new Point[]{new Point(0, 0), new Point(0, 0), new Point(0, 0), new Point(0, 0), new Point(1, 1),}), 5);
+        TestUtil.test(new Solution().maxPoints(new Point[]{new Point(0, 0), new Point(1, 1), new Point(2, 2)}), 3);
+        TestUtil.test(new Solution().maxPoints(new Point[]{new Point(0, 0), new Point(1, 1), new Point(2, 2), new Point(3, 3)}), 4);
+        TestUtil.test(new Solution().maxPoints(new Point[]{new Point(0, 0), new Point(1, 1), new Point(2, 2), new Point(3, 2)}), 3);
+    }
+}

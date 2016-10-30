@@ -1,0 +1,68 @@
+public class Solution {
+    static long countWithPrefix(long n, long prefix /* 1, 10, 11, 12, 2*/) {
+        if (prefix > n)
+            return 0;
+
+        long ret = 0;
+
+        long variant = 1;
+        while (prefix <= n) {
+            ret += Math.min(variant, n - prefix + 1);
+            variant *= 10;
+            prefix *= 10;
+        }
+
+        return ret;
+    }
+
+    static long findKthNumber(long n, long k, long prefix) {
+        if (prefix != 0)
+            k--; // the prefix itself could also count as one
+
+        if (k == 0)
+            return prefix;
+
+        for (int next = (prefix == 0 ? 1 : 0); next < 10; next++) {
+            long newPrefix = prefix * 10 + next;
+            long count = countWithPrefix(n, newPrefix);
+            if (count >= k)
+                return findKthNumber(n, k, newPrefix);
+            k -= count;
+        }
+        throw new IllegalStateException();
+    }
+
+    public int findKthNumber(int n, int k) {
+        return (int) findKthNumber(n, k, 0);
+    }
+
+    public static void main(String[] args) {
+
+        TestUtil.test(new Solution().findKthNumber(681692778, 351251360), 416126219);
+
+        TestUtil.test(new Solution().findKthNumber(9, 9), 9);
+        TestUtil.test(new Solution().findKthNumber(99, 99), 99);
+
+        TestUtil.test(Solution.countWithPrefix(1, 1), 1L);
+        TestUtil.test(Solution.countWithPrefix(9, 1), 1L);
+        TestUtil.test(Solution.countWithPrefix(10, 1), 2L);
+        TestUtil.test(Solution.countWithPrefix(20, 1), 11L);
+        TestUtil.test(Solution.countWithPrefix(20, 20), 1L);
+        TestUtil.test(Solution.countWithPrefix(200, 20), 2L);
+        TestUtil.test(Solution.countWithPrefix(203, 20), 5L);
+        TestUtil.test(Solution.countWithPrefix(23, 2), 5L);
+
+
+        TestUtil.test(new Solution().findKthNumber(100, 10), 17);
+        TestUtil.test(new Solution().findKthNumber(1, 1), 1);
+        TestUtil.test(new Solution().findKthNumber(20, 2), 10);
+        TestUtil.test(new Solution().findKthNumber(20, 3), 11);
+        TestUtil.test(new Solution().findKthNumber(20, 12), 2);
+        TestUtil.test(new Solution().findKthNumber(20, 20), 9);
+        TestUtil.test(new Solution().findKthNumber(9, 5), 5);
+        TestUtil.test(new Solution().findKthNumber(10, 5), 4);
+        TestUtil.test(new Solution().findKthNumber(13, 2), 10);
+
+
+    }
+}

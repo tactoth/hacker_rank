@@ -18,7 +18,7 @@ public class TestUtil {
         if (Objects.equals(actual, expected)) {
             System.out.println("Pass");
         } else {
-            System.err.println("Actual: " + actual + ", expected: " + expected);
+            System.out.println("Actual: " + actual + ", expected: " + expected);
         }
     }
 
