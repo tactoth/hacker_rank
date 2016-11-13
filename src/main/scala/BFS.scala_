@@ -1,0 +1,50 @@
+import scala.collection.mutable
+import scala.io.StdIn
+
+object Solution {
+
+  case class G(nodeCount: Int, edges: Set[(Int, Int)]) {
+    def hasEdge(i: Int, j: Int): Boolean = {
+      if (i > j) {
+        return hasEdge(j, i)
+      }
+      edges.contains((i, j))
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+    var cases = StdIn.readLine().toInt
+    while (cases > 0) {
+      cases -= 1
+      var Array(nodes, edges) = StdIn.readLine().split(" ").map(_.toInt)
+      val edgeSet = mutable.Set[(Int, Int)]()
+
+      while (edges > 0) {
+        edges -= 1
+        val Array(from, to) = StdIn.readLine().split(" ").map(_.toInt)
+        edgeSet.add(math.min(from, to) -> math.max(from, to))
+      }
+
+      val g = G(nodes, edgeSet.toSet)
+      val s = StdIn.readLine().toInt
+
+      // BFS, output results
+      val dist = Array.fill[Int](g.nodeCount + 1)(-1)
+      val q = new mutable.Queue[Int]()
+      dist(s) = 0
+      q.enqueue(s)
+
+      while (q.nonEmpty) {
+        val node = q.dequeue()
+        for (next <- 1 to g.nodeCount if g.hasEdge(node, next)) {
+          if (dist(next) == -1) {
+            dist(next) = dist(node) + 6
+            q.enqueue(next)
+          }
+        }
+      }
+
+      println((1 to g.nodeCount).filter(_ != s).map(dist(_)).mkString(" "))
+    }
+  }
+}

@@ -1,0 +1,32 @@
+import scala.io.StdIn
+
+object Solution {
+
+  def main(args: Array[String]) {
+    var t = StdIn.readLine().toInt
+    while (t > 0) {
+      t -= 1
+
+      val Array(_, k) = StdIn.readLine().split(" ").map(_.toInt)
+      val a = StdIn.readLine().split(" ").map(_.toInt)
+
+      val cache = Array.fill[Int](a.length + 1, k + 1)(-1)
+      def f(end: Int, k: Int): Int = {
+        if (cache(end)(k) == -1) {
+          cache(end)(k) = if (end == 0 || k == 0) {
+            0
+          } else {
+            val v = a(end - 1)
+            (for (count <- 0 to k / v) yield {
+              val cut = v * count
+              cut + f(end - 1, k - cut)
+            }).max
+          }
+        }
+        cache(end)(k)
+      }
+
+      println(f(a.length, k))
+    }
+  }
+}

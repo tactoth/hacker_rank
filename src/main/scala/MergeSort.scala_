@@ -1,0 +1,63 @@
+import java.{util => ju}
+
+object Solution {
+
+  def mergeSort(a: Array[Int]) = {
+    def ms(src: Array[Int], dest: Array[Int], begin: Int, end: Int): Long = {
+      val len = end - begin
+      if (len > 1) {
+        val mid = begin + len / 2
+
+        // sort in dest first then
+        var result = ms(dest, src, begin, mid)
+        result += ms(dest, src, mid, end)
+
+        // merge
+        var i = begin
+        var j = mid
+        var k = begin
+        while (k < end) {
+          val leftAvailable = i < mid
+          val rightAvailable = j < end
+          if (leftAvailable && rightAvailable && src(i) > src(j)) {
+            // picking right when both side has value
+            result += (j - k)
+          }
+
+          if (!leftAvailable || rightAvailable && src(i) > src(j)) {
+            dest(k) = src(j)
+            j += 1
+          } else {
+            dest(k) = src(i)
+            i += 1
+          }
+          k += 1
+        }
+        result
+      } else {
+        0L
+      }
+
+    }
+
+    ms(a.clone(), a, 0, a.length)
+  }
+
+  def main(args: Array[String]) {
+    val sc = new java.util.Scanner(System.in);
+    var t = sc.nextInt();
+    while (t > 0) {
+      t -= 1
+
+      var n = sc.nextInt();
+      var arr = new Array[Int](n);
+      for (arr_i <- 0 until n) {
+        arr(arr_i) = sc.nextInt();
+      }
+
+      // bubble sort the array
+      println(mergeSort(arr))
+      // Console.err.println(ju.Arrays.toString(arr))
+    }
+  }
+}

@@ -1,0 +1,57 @@
+/**
+  * Created by liuwei on 11/5/16.
+  */
+object Solution {
+  def buildLps(p: String): Array[Int] = {
+    val length = p.length
+    val lps = Array.ofDim[Int](length)
+
+    var nextMatchIndex = 0
+    for (i <- 1 until length) {
+      val c = p.charAt(i)
+      if (c == p.charAt(nextMatchIndex)) {
+        nextMatchIndex += 1
+        lps(i) = lps(i - 1) + 1
+      } else {
+        nextMatchIndex = 0
+        if (c == p.charAt(nextMatchIndex)) {
+          nextMatchIndex += 1
+          lps(i) = 1
+        } else {
+          lps(i) = 0
+        }
+      }
+    }
+    lps
+  }
+
+  def search(p: String, s: String): Int = {
+    val lps = buildLps(p)
+    var begin = 0
+    var offset = 0
+
+    def findUnmatchIndex(begin: Int, offset: Int) = (offset until p.length).find(i => p.charAt(i) != s.charAt(begin + i))
+
+    while (begin + p.length <= s.length) {
+      val unmatchIndexOpt = findUnmatchIndex(begin, offset)
+      unmatchIndexOpt match {
+        case None => return begin
+        case Some(unmatchIndex) =>
+          if (unmatchIndex == 0) {
+            begin += 1
+            offset = 0
+          } else {
+            val alreadyMatched = lps(unmatchIndex - 1)
+            begin += unmatchIndex - alreadyMatched
+            offset = alreadyMatched
+          }
+      }
+    }
+    -1
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(search("abac", "ababac"))
+    println(search("aaaa", "aaabaaaabb"))
+  }
+}

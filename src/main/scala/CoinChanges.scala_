@@ -1,0 +1,31 @@
+import scala.io.StdIn
+
+object Solution {
+
+  def main(args: Array[String]): Unit = {
+    val Array(n, m) = StdIn.readLine().split(" ").map(_.toInt)
+    val a = StdIn.readLine().split(" ").map(_.toInt)
+
+    // possible combinations
+    val cache = Array.fill[Long](m + 1, n + 1)(-1L)
+    def f(end: Int, n: Int): Long = {
+      if (cache(end)(n) == -1) {
+        val last = a(end - 1)
+        cache(end)(n) =
+          if (n == 0) 1 // all consumed already
+          else if (end == 1) {
+            if (n % last == 0) 1 else 0
+            // so end is never <= 0
+          } else {
+            val maxOcc = n / last
+            (for (occ <- 0 to maxOcc) yield {
+              f(end - 1, n - occ * last)
+            }).sum
+          }
+      }
+      cache(end)(n)
+    }
+
+    println(f(m, n))
+  }
+}

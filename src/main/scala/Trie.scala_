@@ -1,0 +1,74 @@
+import scala.collection.mutable
+
+object Solution {
+
+  class Trie {
+
+    class Node {
+      // count of all children combined + this one
+      var count: Int = 0
+
+      lazy val children = Array.ofDim[Node](26)
+
+      def add(s: String): Unit = {
+        count += 1
+        if (s.nonEmpty) {
+          val index = s.head - 'a'
+          if (children(index) == null) {
+            children(index) = new Node
+          }
+          children(index).add(s.tail)
+        }
+      }
+
+      def get(s: String): Int = {
+        if (s.isEmpty)
+          return count
+        Option(children(s.head - 'a')) match {
+          case None => 0
+          case Some(node) => node.get(s.tail)
+        }
+      }
+    }
+
+    var root = new Node()
+
+    def add(s: String): Unit = {
+      root.add(s)
+    }
+
+    def get(s: String): Int = root.get(s)
+  }
+
+  def main(args: Array[String]) {
+    //        val t = new Trie()
+    //        t.add("a")
+    //        t.add("ab")
+    //        t.add("ac")
+    //        t.add("b")
+    //        t.add("c")
+    //        TestUtils.test(t.get, "a", 3)
+    //        TestUtils.test(t.get, "ab", 1)
+    //        TestUtils.test(t.get, "ac", 1)
+    //        TestUtils.test(t.get, "b", 1)
+    //        TestUtils.test(t.get, "c", 1)
+    //        TestUtils.test(t.get, "", 5) // ...
+
+    val t = new Trie()
+    val sc = new java.util.Scanner(System.in);
+    var n = sc.nextInt();
+    var a0 = 0;
+    while (a0 < n) {
+      var op = sc.next();
+      var contact = sc.next();
+      a0 += 1;
+
+      if (op == "add") {
+        t.add(contact)
+      } else if (op == "find") {
+        println(t.get(contact))
+      }
+
+    }
+  }
+}

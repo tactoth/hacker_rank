@@ -1,0 +1,39 @@
+import scala.io.StdIn
+
+/**
+  * Created by liuwei on 11/6/16.
+  */
+object Solution {
+  def main(args: Array[String]) {
+    var cases = StdIn.readLine().toInt
+    val removals = Array(1, 2, 5).reverse
+    while (cases > 0) {
+      cases -= 1
+
+      StdIn.readLine()
+      val vs = StdIn.readLine().split(" ").map(_.toInt).sorted
+
+      val firsts = Seq(0, 1, 2, 5) // allow first to be re-based to these values
+
+      var minResult = Int.MaxValue
+      for (first <- firsts if first <= vs(0)) {
+        val base = vs(0) - first
+        val vss = vs.map(_ - base)
+        var result = 0
+        for (i <- vss.indices) {
+          var remaining = vss(i)
+          while (remaining > 0) {
+            val remove = removals.find(_ <= remaining).get
+            val count = remaining / remove
+            remaining -= remove * count
+            result += count
+          }
+        }
+
+        minResult = math.min(minResult, result)
+      }
+      println(minResult)
+
+    }
+  }
+}

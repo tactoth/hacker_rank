@@ -1,0 +1,40 @@
+import java.io.PrintWriter
+
+
+/**
+  * Created by liuwei on 10/30/16.
+  */
+object Solution {
+
+  def compactAndSort(rangestring: String): String = {
+    import scala.collection.mutable
+    val ranges = rangestring.split("\\s*,\\s*").map(rs => rs.split("\\s*:\\s*") match {
+      case Array(s, e) => (s.toLong, e.toLong)
+    }).sortBy(_._1)
+
+    val resultRanges = mutable.Buffer[(Long, Long)]()
+    for (r <- ranges) {
+      if (resultRanges.isEmpty || r._1 > resultRanges.last._2 + 1) {
+        resultRanges += r
+      } else {
+        // connected
+        resultRanges(resultRanges.size - 1) = (resultRanges.last._1, math.max(resultRanges.last._2, r._2))
+      }
+    }
+
+    resultRanges.map(r => r._1 + ":" + r._2).mkString(",")
+  }
+
+  def main(args: Array[String]) {
+    // val fw = new PrintWriter(sys.env("OUTPUT_PATH"));
+
+    val _rangestring = scala.io.StdIn.readLine
+
+    val res = compactAndSort(_rangestring)
+    println(res)
+    //    fw.println(res)
+    //
+    //    fw.close();
+  }
+
+}

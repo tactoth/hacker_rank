@@ -1,0 +1,43 @@
+import scala.collection.mutable
+import scala.io.StdIn
+
+object Solution {
+
+  def main(args: Array[String]): Unit = {
+    val n = StdIn.readLine().trim.toInt
+    val a = mutable.Buffer[Int]()
+    for (i <- 0 until n) {
+      val v = StdIn.readLine().trim.toInt
+      a += v
+    }
+
+    val contDownCount = Array.ofDim[Int](a.length)
+    for (i <- Range.inclusive(a.length - 1, 0, -1)) {
+      if (i == a.length - 1 || a(i) <= a(i + 1)) {
+        contDownCount(i) = 0
+      } else {
+        contDownCount(i) = contDownCount(i + 1) + 1
+      }
+    }
+
+    //Console.err.println(util.Arrays.toString(contDownCount))
+
+    // compute
+    var result = 0L
+    var candy = 1
+    for (i <- a.indices) {
+      val forward = if (i == 0) 1 // first
+      else if (a(i - 1) < a(i)) candy + 1 // growing
+      else 1 // down or flat
+
+      val backward = contDownCount(i) + 1
+      candy = math.max(forward, backward)
+      result += candy
+
+      //Console.err.println(contDownCount(i) + ":" + candy)
+    }
+
+
+    println(result)
+  }
+}

@@ -1,0 +1,109 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Solution {
+    // TODO: assume word lenth < maxWidth
+    public List<String> fullJustify(String[] words, int maxWidth) {
+        List<String> result = new ArrayList<>();
+
+        List<String> currentSentence = new ArrayList<>();
+        int currentSentenceLength = 0;
+        for (int i = 0; i < words.length; i++) {
+            String w = words[i].trim();
+            if (w.length() == 0)
+                continue;
+
+            int newLength = currentSentenceLength == 0 ? w.length() : currentSentenceLength + 1 + w.length();
+            if (newLength <= maxWidth) {
+                currentSentenceLength = newLength;
+                currentSentence.add(w);
+            } else {
+                // we've got a new sentence
+                int gaps = currentSentence.size() - 1;
+                if (gaps == 0)
+                    result.add(packLeft(currentSentence, maxWidth));
+                else {
+                    int charLength = currentSentenceLength - gaps;
+                    int spaces = maxWidth - charLength;
+                    int avgSpaces = spaces / gaps;
+                    int remainingSpaces = spaces - avgSpaces * gaps;
+
+                    // build the string
+                    StringBuilder builder = new StringBuilder();
+                    for (int j = 0; j < currentSentence.size(); j++) {
+                        String e = currentSentence.get(j);
+
+                        if (j > 0) {
+                            int n = avgSpaces;
+                            if (remainingSpaces > 0) {
+                                n++;
+                                remainingSpaces--;
+                            }
+                            appendSpaces(builder, n);
+                        }
+                        builder.append(e);
+                    }
+
+                    result.add(builder.toString());
+                }
+
+                // clear sentence
+                currentSentence.clear();
+
+                // and start over
+                currentSentence.add(w);
+                currentSentenceLength = w.length();
+            }
+        }
+
+        // the last line
+        {
+            result.add(packLeft(currentSentence, maxWidth));
+        }
+
+        return result;
+    }
+
+    private String packLeft(List<String> currentSentence, int maxWidth) {
+        StringBuilder builder = new StringBuilder();
+        for (int j = 0; j < currentSentence.size(); j++) {
+            String e = currentSentence.get(j);
+
+            if (j > 0) {
+                builder.append(' ');
+            }
+            builder.append(e);
+        }
+
+        while (builder.length() < maxWidth)
+            builder.append(' ');
+        return builder.toString();
+    }
+
+    static void appendSpaces(StringBuilder builder, int n) {
+        while (n-- > 0) {
+            builder.append(' ');
+        }
+    }
+
+    public static void main(String[] args) {
+        TestUtil.test(new Solution().fullJustify(new String[]{"This", "is", "an", "example", "of", "text", "justification."}, 16), Arrays.asList("This    is    an",
+                "example  of text",
+                "justification.  "
+        ));
+
+        TestUtil.test(new Solution().fullJustify(new String[]{"a", "a", "a", "a", "aaaa"}, 10),
+                Arrays.asList(
+                        "a  a  a  a",
+                        "aaaa      "
+                ));
+
+        TestUtil.test(new Solution().fullJustify(new String[]{"a", "a", "a", "a", "aaaa"}, 11),
+                Arrays.asList(
+                        "a   a  a  a",
+                        "aaaa       "
+                ));
+
+    }
+}

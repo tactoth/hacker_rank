@@ -1,0 +1,47 @@
+import scala.collection.mutable
+
+object Solution {
+
+  def main(args: Array[String]) {
+
+    val smalls = mutable.PriorityQueue[Int]() // biggest at head
+    val bigs = mutable.PriorityQueue[Int]()(Ordering[Int].reverse) // smallest at head, this can have 1 more element
+
+    def rebalance(): Unit = {
+      if (smalls.isEmpty || bigs.isEmpty)
+        return
+
+      while (smalls.head > bigs.head) {
+        bigs.enqueue(smalls.dequeue())
+        smalls.enqueue(bigs.dequeue())
+      }
+    }
+
+    def add(v: Int): Unit = {
+      if (smalls.size < bigs.size)
+        smalls.enqueue(v)
+      else
+        bigs.enqueue(v)
+      rebalance()
+    }
+
+    def getMid: Float = {
+      // at least one exist
+      if (bigs.size > smalls.size)
+        bigs.head
+      else if (bigs.size < smalls.size)
+        smalls.head
+      else
+        (bigs.head + smalls.head).asInstanceOf[Float] / 2
+    }
+
+    val sc = new java.util.Scanner(System.in);
+    var n = sc.nextInt();
+    for (a_i <- 0 until n) {
+      val v = sc.nextInt();
+      add(v)
+      println(f"$getMid%.1f")
+    }
+  }
+
+}

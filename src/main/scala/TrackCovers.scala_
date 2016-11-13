@@ -1,0 +1,35 @@
+import scala.collection.mutable
+import scala.io.StdIn
+
+object Solution {
+
+  def main(args: Array[String]): Unit = {
+    // TODO: num range:Long
+    val Array(n, m, k) = StdIn.readLine().split(" ").map(_.toInt)
+    val lines = mutable.Map[Int, mutable.Buffer[(Int, Int)]]()
+    for (i <- 0 until k) {
+      val Array(r, c1, c2) = StdIn.readLine().split(" ").map(_.toInt)
+      lines.getOrElseUpdate(r, mutable.Buffer()) += math.min(c1, c2) -> math.max(c1, c2)
+    }
+
+    def merge(segs: Seq[(Int, Int)]) = {
+      // sort by start
+      val result = mutable.Buffer[(Int, Int)]()
+      for ((s, e) <- segs.sortBy(_._1)) {
+        // all inclusive
+        if (result.nonEmpty && result.last._2 + 1 >= s) {
+          result(result.length - 1) = (result.last._1, math.max(result.last._2, e))
+        } else {
+          result += s -> e
+        }
+      }
+      result
+    }
+
+    // sort
+    val mergedLines = lines.mapValues(merge)
+    val totalTrackArea = mergedLines.values.flatten.map(seg => (seg._2 - seg._1 + 1).toLong).sum
+    val totalArea = n.toLong * m.toLong
+    println(totalArea - totalTrackArea)
+  }
+}

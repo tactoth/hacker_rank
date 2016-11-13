@@ -1,0 +1,53 @@
+import java.util
+
+/**
+  * Created by liuwei on 11/5/16.
+  */
+object Solution {
+
+  /**
+    * e - s > 0
+    * pivot >= s && pivot < e
+    */
+  def partition(a: Array[Int], s: Int, e: Int, pivot: Int): Int = {
+    def swap(i: Int, j: Int): Unit = {
+      if (i != j) {
+        val t = a(i)
+        a(i) = a(j)
+        a(j) = t
+      }
+    }
+
+    val pivotValue = a(pivot)
+    swap(e - 1, pivot)
+    var leftEnd = s
+    for (i <- s until e - 1) {
+      if (a(i) < pivotValue) {
+        swap(leftEnd, i)
+        leftEnd += 1
+      }
+    }
+    swap(leftEnd, e - 1)
+    leftEnd
+  }
+
+  def qs(a: Array[Int]) = {
+    def qs_(s: Int, e: Int): Unit = {
+      if (e - s > 1) {
+        val mid = partition(a, s, e, s)
+        qs_(s, mid)
+        qs_(mid + 1, e)
+      }
+    }
+    qs_(0, a.length)
+    a
+  }
+
+  def main(args: Array[String]) {
+    println(util.Arrays.toString(qs(Array(1, 2, 3, 4, 5))))
+    println(util.Arrays.toString(qs(Array(5, 4, 3, 2, 1))))
+    println(util.Arrays.toString(qs(Array(5, 3, 4, 2, 1))))
+    println(util.Arrays.toString(qs(Array(2, 2, 3, 3, 1, 1))))
+  }
+
+}

@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -14,8 +15,16 @@ public class TestUtil {
         System.out.println(label + " => " + (System.currentTimeMillis() - start) + "ms");
     }
 
-    static void test(Object actual, Object expected) {
+    static <T> void test(T actual, T expected) {
         if (Objects.equals(actual, expected)) {
+            System.out.println("Pass");
+        } else {
+            System.out.println("Actual: " + actual + ", expected: " + expected);
+        }
+    }
+
+    static <T> void test(T[] actual, T[] expected) {
+        if (Arrays.equals(actual, expected)) {
             System.out.println("Pass");
         } else {
             System.out.println("Actual: " + actual + ", expected: " + expected);

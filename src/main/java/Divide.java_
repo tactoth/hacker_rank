@@ -1,0 +1,59 @@
+public class Solution {
+    public int divide(int dividend, int divisor) {
+        if (divisor == 0)
+            return Integer.MAX_VALUE;
+        if (dividend == 0)
+            return 0;
+
+        boolean positive = (dividend > 0 == divisor > 0);
+        long longResult = dividePositive(Math.abs((long) dividend), Math.abs((long) divisor)) * (positive ? 1 : -1);
+
+        if (longResult > Integer.MAX_VALUE)
+            return Integer.MAX_VALUE;
+        else if (longResult < Integer.MIN_VALUE)
+            return Integer.MIN_VALUE;
+        return (int) longResult;
+    }
+
+    public long dividePositive(long dividend, long divisor) {
+        // first increase divisor each time
+        long remove = divisor;
+        long removeCountDivisor = 1;
+        long remainig = dividend;
+
+        long removed = 0;
+
+        while (remainig >= divisor) {
+            // if can remove current removal
+            if (remainig >= remove) {
+                remainig -= remove;
+                removed += removeCountDivisor;
+
+                // double the removal
+                remove <<= 1;
+                removeCountDivisor <<= 1;
+            } else {
+                // current removal is too big, reduce it, try in next pass
+                remove >>= 1;
+                removeCountDivisor >>= 1;
+            }
+        }
+
+        return removed;
+    }
+
+    public static void main(String[] args) {
+        TestUtil.test(new Solution().divide(-2147483648, -1), 2147483647);
+
+        TestUtil.test(new Solution().divide(1, 1), 1);
+        TestUtil.test(new Solution().divide(3, 1), 3);
+        TestUtil.test(new Solution().divide(10000, 1), 10000);
+        TestUtil.test(new Solution().divide(10000, 10), 1000);
+        TestUtil.test(new Solution().divide(0, 10), 0);
+        TestUtil.test(new Solution().divide(10000, 0), Integer.MAX_VALUE);
+
+
+        TestUtil.test(new Solution().divide(-1, 1), -1);
+        TestUtil.test(new Solution().divide(3, -1), -3);
+    }
+}
