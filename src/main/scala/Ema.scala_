@@ -1,0 +1,91 @@
+import scala.collection.mutable
+import scala.io.StdIn
+
+object Solution {
+
+  def main(args: Array[String]): Unit = {
+    val Array(height, width) = StdIn.readLine().split(" ").map(_.toInt)
+    val m = mutable.Buffer[StringBuilder]()
+    for (i <- 0 until height) m += StringBuilder.newBuilder.append(StdIn.readLine())
+
+    def dump(label: String): Unit = {
+      //      println(label)
+      //      m.foreach(println)
+    }
+
+    def computeExt(x: Int, y: Int) = {
+      var ext = 0
+      while (x - ext >= 0 && m(y)(x - ext) == 'G' &&
+        x + ext < width && m(y)(x + ext) == 'G' &&
+        y - ext >= 0 && m(y - ext)(x) == 'G' &&
+        y + ext < height && m(y + ext)(x) == 'G') {
+        ext += 1
+      }
+      ext
+    }
+
+    def fillEdge(x: Int, y: Int, e: Int, c: Char): Unit = {
+      // e:0 -> fill self
+      m(y)(x - e) = c
+      m(y)(x + e) = c
+      m(y - e)(x) = c
+      m(y + e)(x) = c
+    }
+
+    def fill(x: Int, y: Int, ext: Int, c: Char): Unit = {
+      // ext:1 -> fill self
+      for (e <- 0 until ext) {
+        m(y)(x - e) = c
+        m(y)(x + e) = c
+        m(y - e)(x) = c
+        m(y + e)(x) = c
+      }
+    }
+
+    def area(ext: Int) = (ext - 1) * 4 + 1
+
+    val ext = Array.ofDim[Int](height, width)
+    for (y <- 0 until height) {
+      for (x <- 0 until width) {
+        ext(y)(x) = computeExt(x, y)
+      }
+    }
+
+    // fill first, then try second
+    var result = Int.MinValue
+    for (y <- 0 until height) {
+      for (x <- 0 until width) {
+        // pick the first
+        val ext1 = ext(y)(x)
+        if (ext1 > 0) {
+          for (e <- 0 until ext1) {
+            fillEdge(x, y, e, 'B')
+
+            dump(s"FillEdge($x, $y, $e)")
+
+            val area1 = area(e + 1)
+
+            // then search for the second
+            for (yy <- 0 until height) {
+              for (xx <- 0 until width) {
+                if (x -> y != xx -> yy) {
+                  val ext2 = computeExt(xx, yy)
+                  if (ext2 > 0) {
+                    val area2 = area(ext2)
+                    result = math.max(area1 * area2, result)
+                  }
+                }
+              }
+            }
+          }
+
+          fill(x, y, ext1, 'G')
+          dump(s"Fill($x, $y, $ext1), reset")
+        }
+      }
+    }
+
+    println(result)
+
+  }
+}
