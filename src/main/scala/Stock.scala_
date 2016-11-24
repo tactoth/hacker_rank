@@ -1,0 +1,33 @@
+import scala.collection.mutable
+import scala.io.StdIn
+
+object Solution {
+
+  def main(args: Array[String]): Unit = {
+    var cases = StdIn.readLine().toInt
+    while (cases > 0) {
+      cases -= 1
+
+      val n = StdIn.readLine().toInt
+      val a = StdIn.readLine().split(" ").map(_.toLong)
+
+      var sell = Long.MinValue
+      val buy = mutable.Buffer[Long]()
+
+      var result = 0L
+      for (e <- a.reverse) {
+        if (sell > e) {
+          buy += e
+        } else if (sell < e) {
+          result += buy.length * sell - buy.sum
+
+          sell = e
+          buy.clear()
+        }
+      }
+
+      result += buy.length * sell - buy.sum // if there's some left
+      println(result)
+    }
+  }
+}

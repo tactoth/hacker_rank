@@ -1,0 +1,51 @@
+import scala.io.StdIn
+
+object Solution {
+
+  def main(args: Array[String]): Unit = {
+    var cases = StdIn.readLine().toInt
+    while (cases > 0) {
+      cases -= 1
+
+      val n = StdIn.readLine().toInt
+      val a = StdIn.readLine().split(" ").map(_.toLong)
+
+      var sumFrom = Array.ofDim[Long](n)
+      for (i <- a.indices.reverse) {
+        sumFrom(i) = if (i + 1 == a.length) a(i) else a(i) + sumFrom(i + 1)
+      }
+
+      // max when have s input
+      val cache = Array.fill[Long](n)(-1)
+
+      def f(s: Int): Long = {
+        if (cache(s) == -1) {
+          cache(s) =
+            if (s + 3 >= a.length) {
+              a.slice(s, a.length).sum
+            } else {
+              var maxTotalTake = Long.MinValue
+              var thisTake = 0L
+              for (take <- 1 to 3) {
+                thisTake += a(s + take - 1)
+                val nextStart = s + take
+
+                val theirTake = f(nextStart)
+                val ourTake = sumFrom(nextStart) - theirTake
+                maxTotalTake = math.max(ourTake + thisTake, maxTotalTake)
+              }
+
+              maxTotalTake
+            }
+        }
+        cache(s)
+      }
+
+      // avoid SOF
+      for (s <- a.indices.reverse) f(s)
+      println(f(0))
+    }
+  }
+
+
+}
