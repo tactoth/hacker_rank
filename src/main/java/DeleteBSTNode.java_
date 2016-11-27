@@ -1,0 +1,95 @@
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ * int val;
+ * TreeNode left;
+ * TreeNode right;
+ * TreeNode(int x) { val = x; }
+ * }
+ */
+public class Solution {
+    static class TreeNode {
+        int val;
+        TreeNode left;
+        TreeNode right;
+
+        TreeNode(int x) {
+            val = x;
+        }
+    }
+
+    static TreeNode[] findNode(TreeNode parent, TreeNode node, int key) {
+        if (node == null)
+            return null;
+
+        if (node.val == key)
+            return new TreeNode[]{parent, node};
+        else if (node.val < key)
+            return findNode(node, node.right, key);
+        else
+            return findNode(node, node.left, key);
+    }
+
+    static void replaceChild(TreeNode parent, TreeNode node, TreeNode newNode) {
+        if (parent.left == node) {
+            parent.left = newNode;
+        } else if (parent.right == node) {
+            parent.right = newNode;
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
+    static void removeChild(TreeNode parent, TreeNode node) {
+        replaceChild(parent, node, null);
+    }
+
+
+    public TreeNode deleteNode(TreeNode root, int key) {
+        TreeNode pivot = new TreeNode(Integer.MIN_VALUE); // TODO: make sure it's still working with MIN
+        pivot.right = root;
+
+        TreeNode[] parentAndNode = findNode(pivot, root, key);
+        if (parentAndNode == null)
+            return root;
+
+        TreeNode node = parentAndNode[1]; // non-null
+        TreeNode parent = parentAndNode[0]; // nullable
+
+        deleteNode(parent, node);
+
+        return pivot.right; // if the node to remove is root, return null
+    }
+
+    private void deleteNode(TreeNode parent, TreeNode node) {
+        if (node.left == null && node.right == null) {
+            // remove directly
+            removeChild(parent, node);
+        } else if (node.left == null) { // right nonEmpty
+            replaceChild(parent, node, node.right);
+        } else if (node.right == null) { // left nonEmpty
+            replaceChild(parent, node, node.left);
+        } else {
+            // both non empty, find min in right tree as it's the mid
+            TreeNode p = node;
+            TreeNode l = node.right; // non-null now
+            while (l.left != null) {
+                p = l;
+                l = l.left;
+            }
+
+            // now l is the left most in sub tree
+            node.val = l.val;
+
+            // don't need l any more
+            deleteNode(p, l);
+        }
+    }
+
+    public static void main(String[] args) {
+        TreeNode a = new TreeNode(1);
+        a.right = new TreeNode(2);
+        TreeNode result = new Solution().deleteNode(a, 1);
+        System.out.println(result.val); // 2
+    }
+}

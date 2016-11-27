@@ -1,0 +1,57 @@
+import java.util.Stack;
+
+public class Solution {
+    public int lengthLongestPath(String input) {
+        Stack<Integer> parentSegsLength = new Stack<>();
+        int currentCharsLength = 0;
+
+        int maxFileLength = 0;
+
+        // for parsing a line
+        int lineTabs = 0;
+        int lineChars = 0;
+        boolean isLineFile = false;
+
+        for (int i = 0; i <= input.length(); i++) {
+            boolean isEndOfLine = i == input.length() || input.charAt(i) == '\n';
+            if (isEndOfLine) {
+                // if not progressive
+                while (parentSegsLength.size() > lineTabs) {
+                    currentCharsLength -= parentSegsLength.pop(); // pop and remove from current length
+                }
+
+                parentSegsLength.push(lineChars);
+                currentCharsLength += lineChars;
+
+                System.out.println(parentSegsLength);
+                System.out.println(currentCharsLength);
+
+                // update max file length
+                if (isLineFile) {
+                    maxFileLength = Math.max(maxFileLength, currentCharsLength + parentSegsLength.size() - 1 /*self has been added*/);
+                }
+
+                // reset
+                lineTabs = 0;
+                lineChars = 0;
+                isLineFile = false;
+            } else {
+                char c = input.charAt(i);
+                if (c == '\t') {
+                    lineTabs++; // it's only going to be first so OK
+                } else if (c == '.') {
+                    isLineFile = true;
+                    lineChars++;
+                } else { // it can't be slash
+                    lineChars++;
+                }
+            }
+        }
+
+        return maxFileLength;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new Solution().lengthLongestPath("dir\n\tsubdir1\n\t\tfile1.ext\n\t\tsubsubdir1\n\tsubdir2\n\t\tsubsubdir2\n\t\t\tfile2.ext"));
+    }
+}

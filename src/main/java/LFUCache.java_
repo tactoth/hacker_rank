@@ -1,0 +1,207 @@
+import java.util.*;
+
+public class LFUCache {
+
+    private final int capacity;
+
+    static class FreqChild {
+        int key; // for remove next
+        FreqNode parent; // non-null
+
+        // double linked list for LRU
+        FreqChild prev, next;
+
+        public FreqChild(int key, FreqNode parent, FreqChild prev, FreqChild next) {
+            this.key = key;
+            this.parent = parent;
+            this.prev = prev;
+            this.next = next;
+        }
+
+
+        // no hashcode / equals, by ref is enough in this class because it won't be duplicated
+    }
+
+    static class FreqNode {
+        FreqChild childrenHead;
+        FreqChild childrenTail;
+
+        // for the double linked list
+        void addLast(FreqChild child) {
+            if (childrenHead == null) {
+                childrenHead = childrenTail = child;
+            } else {
+                childrenTail.next = child;
+                child.prev = childrenTail; // ok, child.next should be null
+                childrenTail = child;
+            }
+        }
+
+        FreqChild remove(FreqChild child) {
+            // update head or tail
+            if (child == childrenHead) {
+                childrenHead = child.next;
+            }
+            if (child == childrenTail) {
+                childrenTail = child.prev;
+            }
+
+            // detach, maintain links
+            if (child.prev != null) {
+                child.prev.next = child.next;
+            }
+            if (child.next != null) {
+                child.next.prev = child.prev;
+            }
+            child.prev = null;
+            child.next = null; // floating
+            return child;
+        }
+
+        FreqChild removeHead() {
+            if (childrenHead == null)
+                return null;
+
+            return remove(childrenHead);
+        }
+
+        boolean isChildrenEmpty() {
+            return childrenHead == null;
+        }
+
+        int accessCount;
+        FreqNode next;
+
+        public FreqNode(int accessCount, FreqNode next) {
+            this.accessCount = accessCount;
+            this.next = next;
+        }
+    }
+
+
+    FreqNode head = null;
+    private Map<Integer, FreqChild> k2FreqChild = new HashMap<>();
+    private Map<Integer, Integer> m = new HashMap<>();
+
+    void recordAccess(int k) {
+        FreqChild freqChild = k2FreqChild.get(k);
+        if (freqChild == null) {
+            // the first time accessing, put access count to 1 and add it to the head
+            // it's the smallest
+            if (head == null) {
+                head = new FreqNode(1, null);
+            } else if (head.accessCount > 1) {
+                // head.accessCount > 1, add this one as new newHead
+                this.head = new FreqNode(1, head);
+            } // otherwise it's already 1
+
+            freqChild = new FreqChild(k, head, null, null);
+            k2FreqChild.put(k, freqChild);
+
+            head.addLast(freqChild);
+        } else {
+            // already exist freq child, progress
+            FreqNode parent = freqChild.parent;
+            int oldAccessCount = parent.accessCount;
+            int newAccessCount = oldAccessCount + 1;
+
+            // it's either the next one or should be inserted before the next one
+            parent.remove(freqChild); // no longer belongs here
+            if (parent.next == null || parent.next.accessCount != newAccessCount) {
+                parent.next = new FreqNode(newAccessCount, parent.next); // insert a new node
+            }
+            freqChild.parent = parent.next;
+            parent.next.addLast(freqChild); // moved it to next, as the last
+
+            removeAllEmptyNodes(); // it might help
+        }
+
+        dump("record_access_" + k);
+    }
+
+    int removeMin() {
+        // remove all empty nodes
+        removeAllEmptyNodes();
+
+        // now if the first node is non-null it has something
+        if (head == null) throw new IllegalStateException("Empty");
+
+        FreqChild freqChildHead = head.removeHead();
+
+        dump("remove_min_" + freqChildHead.key);
+        return freqChildHead.key;
+    }
+
+    private void removeAllEmptyNodes() {
+        while (head != null && head.isChildrenEmpty()) {
+            head = head.next;
+        }
+    }
+
+    public LFUCache(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public int get(int key) {
+        Integer result = m.get(key);
+        if (result == null) {
+            return -1;
+        }
+
+        recordAccess(key);
+        return result;
+    }
+
+    public void set(int key, int value) {
+        if (capacity == 0)
+            return;
+
+        if (!m.containsKey(key) && m.size() == capacity) {
+            Integer minKey = removeMin(); // shouldn't be null here if capacity > 0
+            m.remove(minKey);
+            k2FreqChild.remove(minKey);
+        }
+
+        m.put(key, value);
+        recordAccess(key);
+    }
+
+    public void dump(String label) {
+//        System.out.println("DUMP: " + label);
+//        for (FreqNode n = head; n != null; n = n.next) {
+//            System.out.print(n.accessCount + ": ");
+//            for (FreqChild c = n.childrenHead; c != null; c = c.next) {
+//                System.out.print(c.key + " ");
+//            }
+//            System.out.println();
+//        }
+//
+//        System.out.println("Map Keys: " + m.keySet());
+//        System.out.println("AccessInfo Keys: " + k2FreqChild.keySet());
+    }
+
+    public static void main(String[] args) {
+        LFUCache c = new LFUCache(0);
+        c.set(0, 0);
+        c.get(0);
+//        c.set(1, 2);
+//        c.get(1);
+//        c.get(1); // 1-3
+//        c.set(2, 0);
+//        c.get(2); // 2-2
+//        c.set(3, 0);
+//
+//        c.set(4, 1);
+//
+//        System.out.println(c.get(4));
+//        System.out.println(c.get(3)); // removed
+
+    }
+}
+
+/**
+ * Your LFUCache object will be instantiated and called as such:
+ * LFUCache obj = new LFUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.set(key,value);
+ */

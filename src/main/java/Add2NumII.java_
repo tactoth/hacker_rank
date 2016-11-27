@@ -1,0 +1,88 @@
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode(int x) { val = x; }
+ * }
+ */
+public class Solution {
+    private static class ListNode {
+        int val;
+        ListNode next;
+
+        ListNode(int x) {
+            val = x;
+        }
+    }
+
+    static int len(ListNode node) {
+        int res = 0;
+        for (ListNode n = node; n != null; n = n.next) res++;
+        return res;
+    }
+
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        int count1 = len(l1), count2 = len(l2);
+
+        List<ListNode> result = new ArrayList<>();
+
+        // align
+        while (count1 != count2) {
+            if (count1 > count2) {
+                result.add(new ListNode(l1.val));
+                l1 = l1.next;
+                count1--;
+            } else {
+                result.add(new ListNode(l2.val));
+                l2 = l2.next;
+                count2--;
+            }
+        }
+
+        // do actual add
+        while (count1-- > 0) {
+            int v1 = l1.val;
+            int v2 = l2.val;
+            l1 = l1.next;
+            l2 = l2.next;
+
+            int add = v1 + v2;
+            int prev = add / 10;
+            int rem = add % 10;
+
+            // add prev
+            int index = result.size() - 1;
+            while (prev != 0) {
+                if (index == -1) {
+                    // need to insert a node for carry
+                    result.add(0, new ListNode(prev)); // prev < 10
+                    prev = 0;
+                } else {
+                    ListNode node = result.get(index--);
+                    node.val += prev;
+                    prev = node.val / 10;
+                    node.val %= 10;
+                }
+            }
+
+
+            // then this one
+            result.add(new ListNode(rem));
+        }
+
+        // link nodes
+        for (int i = 0; i <= result.size() - 2; i++) {
+            result.get(i).next = result.get(i + 1);
+        }
+
+        return result.isEmpty() ? null : result.get(0);
+    }
+
+    public static void main(String[] args) {
+        new Solution().addTwoNumbers(new ListNode(3), new ListNode(4));
+    }
+}

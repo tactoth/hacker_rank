@@ -1,0 +1,54 @@
+public class Solution {
+
+    public boolean circularArrayLoop(int[] nums) {
+        for (int i = 0; i < nums.length; i++) {
+            if (nums[i] == 0 || nums[i] % nums.length == 0)
+                continue;
+
+            boolean forward = nums[i] > 0;
+            int fast = i, slow = i;
+            while (true) {
+                fast = nextIndex(nums, fast, forward);
+                if (fast < 0)
+                    break;
+
+                fast = nextIndex(nums, fast, forward);
+                if (fast < 0)
+                    break;
+
+                slow = nextIndex(nums, slow, forward);
+
+                if (slow == fast) {
+                    // ring found
+                    return true;
+                }
+            }
+
+            // it either stops at the other direction or hit a self loop, reset previously visited
+            for (int j = nextIndex(nums, i, forward); j >= 0; j = nextIndex(nums, j, forward)) {
+                nums[j] = 0;
+            }
+        }
+        return false;
+    }
+
+    private int nextIndex(int[] nums, int j, boolean forward) {
+        int steps = nums[j];
+
+        // self loop is also invalid
+        if (steps % nums.length == 0)
+            return -2;
+
+        if (steps > 0 != forward)
+            return -1;
+
+        int k = (j + steps) % nums.length;
+        if (k < 0) k += nums.length;
+        return k;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new Solution().circularArrayLoop(new int[]{2, -1, 1, 2, 2}));
+        System.out.println(new Solution().circularArrayLoop(new int[]{-1, 2}));
+    }
+}
