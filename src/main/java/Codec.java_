@@ -1,0 +1,72 @@
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ * int val;
+ * TreeNode left;
+ * TreeNode right;
+ * TreeNode(int x) { val = x; }
+ * }
+ */
+public class Codec {
+
+    public static class TreeNode {
+        int val;
+        TreeNode left, right;
+
+        TreeNode(int x) {
+            val = x;
+        }
+    }
+
+    // Encodes a tree to a single string.
+    public String serialize(TreeNode root) {
+        if (root == null) return "N";
+        return root.val + " " + serialize(root.left) + serialize(root.right); // val can be minus
+    }
+
+    static class DecodeResult {
+        TreeNode node;
+        int end;
+
+        DecodeResult(TreeNode node, int end) {
+            this.node = node;
+            this.end = end;
+        }
+    }
+
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        return decode(data, 0).node;
+    }
+
+    public DecodeResult decode(String data, int start) {
+        int c = data.charAt(start);
+        if (c == 'N') return new DecodeResult(null, start + 1);
+        // at head it'd either be N or a number
+        int indexValEnd = data.indexOf(' ', start);
+        TreeNode node = new TreeNode(Integer.parseInt(data.substring(start, indexValEnd)));
+
+        // decode left and right
+        DecodeResult leftResult = decode(data, indexValEnd + 1);
+        DecodeResult rightResult = decode(data, leftResult.end); // skip the space
+        node.left = leftResult.node;
+        node.right = rightResult.node;
+
+        return new DecodeResult(node, rightResult.end);
+    }
+
+    public static void main(String[] args) {
+        TreeNode a = new TreeNode(2);
+        a.left = new TreeNode(1);
+        a.right = new TreeNode(3);
+
+        Codec codec = new Codec();
+        String s = codec.serialize(a);
+        TreeNode node = codec.deserialize(s);
+        System.out.println(node);
+    }
+}
+
+// Your Codec object will be instantiated and called as such:
+// Codec codec = new Codec();
+// codec.deserialize(codec.serialize(root));
