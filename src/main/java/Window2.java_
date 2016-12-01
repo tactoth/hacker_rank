@@ -1,0 +1,68 @@
+import java.util.HashMap;
+import java.util.Map;
+
+public class Solution {
+    public String minWindow(String s, String t) {
+        Map<Character, Integer> cs = new HashMap<>();
+        for (int i = 0; i < t.length(); i++) {
+            char c = t.charAt(i);
+            Integer f = cs.get(c);
+            cs.put(c, f == null ? 1 : (f + 1));
+        }
+
+        String result = "";
+
+        Map<Character, Integer> freq = new HashMap<>();
+        for (int i = 0, j = 0; j < s.length(); j++) {
+            // add this one and update freq
+            char c = s.charAt(j);
+            if (cs.containsKey(c)) {
+                Integer f = freq.get(c);
+                int newF = (f == null ? 0 : f) + 1;
+                freq.put(c, newF);
+
+                // move head forward when met a good segment
+                boolean containsAll = true;
+                if (freq.size() == cs.size()) {
+                    for (Map.Entry<Character, Integer> en : cs.entrySet()) {
+                        if (freq.get(en.getKey()) < en.getValue()) {
+                            containsAll = false;
+                            break;
+                        }
+                    }
+                } else {
+                    containsAll = false;
+                }
+
+                if (containsAll) { // has all
+                    while (i < j) {
+                        char headChar = s.charAt(i);
+                        Integer headFreq = freq.get(headChar);
+                        if (headFreq == null) {
+                            // non-related
+                            i++;
+                        } else if (headFreq > cs.get(headChar)) {
+                            freq.put(headChar, headFreq - 1);
+                            i++;
+                        } else {
+                            break; // either met
+                        }
+                    }
+
+                    // should still have all
+                    String sub = s.substring(i, j + 1);
+                    if (result.isEmpty() || sub.length() < result.length()) {
+                        result = sub;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        TestUtil.test(new Solution().minWindow("ADOBECODEBANC", "ABC"), "BANC");
+        TestUtil.test(new Solution().minWindow("a", "aa"), "");
+    }
+}
