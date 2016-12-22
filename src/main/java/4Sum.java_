@@ -1,0 +1,41 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Solution {
+    public List<List<Integer>> fourSum(int[] nums, int target) {
+        Arrays.sort(nums);
+
+        List<List<Integer>> result = new ArrayList<>();
+        for (int i = 0; i < nums.length; i = findDiffIndex(nums, i)) {
+            for (int j = i + 1; j < nums.length; j = findDiffIndex(nums, j)) {
+
+                int xMax = nums.length - 1;
+                for (int k = j + 1; k < xMax; k = findDiffIndex(nums, k)) {
+                    for (int x = xMax; x > k; x--) {
+                        int sum = nums[i] + nums[j] + nums[k] + nums[x];
+                        if (sum > target) {
+                            xMax = x - 1;
+                        } else if (sum == target) {
+                            xMax = x - 1; // for next value can't be bigger than this
+                            result.add(Arrays.asList(nums[i], nums[j], nums[k], nums[x]));
+                            break;
+                        } else { // <
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    static int findDiffIndex(int[] nums, int index) {
+        int i = index + 1;
+        for (; i < nums.length; i++) {
+            if (nums[i] != nums[index])
+                return i;
+        }
+        return i;
+    }
+}

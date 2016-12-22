@@ -1,0 +1,286 @@
+import java.io.BufferedReader;
+import java.io.IOError;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class Solution {
+
+    interface TermElement {
+    }
+
+    static class Term {
+        List<TermElement> elements;
+
+        public Term(List<TermElement> elements) {
+            this.elements = elements;
+        }
+
+        /**
+         * Check if the expression is valid, invalid inputs:
+         * 1 2
+         * 1 +
+         * 3 + +
+         * Empty string
+         */
+        boolean check() {
+            int operands = 0;
+            for (TermElement element : elements) {
+                if (element instanceof Op) {
+                    Op op = (Op) element;
+                    if (operands < op.operands)
+                        return false;
+                    operands -= op.operands;
+                    operands++; // add result back
+                } else {
+                    operands++;
+                }
+            }
+            return operands == 1; // eventually should give one result
+        }
+
+        /**
+         * Compute the value, the cell reference will be found from the partial results.
+         * When calling this method, make sure partial results contains results for all
+         * the cells this one references to. (Done by topological sorting)
+         */
+        double compute(double[][] partialResult) {
+            Stack<Double> operands = new Stack<>();
+            List<Double> currentOpInput = new ArrayList<>(); // reuse
+
+            for (TermElement element : elements) {
+                if (element instanceof Op) {
+                    currentOpInput.clear();
+                    Op op = (Op) element;
+
+                    while (currentOpInput.size() < op.operands) {
+                        currentOpInput.add(operands.pop());
+                    }
+
+                    operands.push(op.eval(currentOpInput));
+                } else if (element instanceof Val) {
+                    operands.push(((Val) element).value);
+                } else if (element instanceof CellRef) {
+                    CellRef cellRef = (CellRef) element;
+                    operands.push(partialResult[cellRef.row][cellRef.column]);
+                }
+            }
+
+            assert operands.size() == 1;
+            return operands.pop();
+        }
+    }
+
+    static class Val implements TermElement {
+        double value;
+
+        public Val(double value) {
+            this.value = value;
+        }
+    }
+
+    static class CellRef implements TermElement {
+        int row, column;
+
+        public CellRef(int row, int column) {
+            this.row = row;
+            this.column = column;
+        }
+    }
+
+    enum Op implements TermElement {
+        Add("+", 2),
+        Minus("-", 2),
+        Multiply("*", 2),
+        Divide("/", 2),
+        Increment("++", 1),
+        Decrement("--", 1);
+
+        private final String symbol;
+        private final int operands;
+
+        Op(String symbol, int operands) {
+            this.symbol = symbol;
+            this.operands = operands;
+        }
+
+        static Op fromSymbol(String symbol) {
+            for (Op op : values()) {
+                if (op.symbol.equals(symbol)) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("Unknown op: " + symbol);
+        }
+
+        double eval(List<Double> input) {
+            if (input.size() != operands) {
+                throw new IllegalArgumentException("Expecting " + operands + " operands, but received " + input.size());
+            }
+
+            switch (this) {
+                case Add:
+                    return input.get(1) + input.get(0);
+                case Minus:
+                    return input.get(1) - input.get(0);
+                case Multiply:
+                    return input.get(1) * input.get(0);
+                case Divide:
+                    return input.get(1) / input.get(0);
+                case Increment:
+                    return input.get(0) + 1;
+                case Decrement:
+                    return input.get(0) - 1;
+            }
+            throw new IllegalStateException("Should never be here");
+        }
+    }
+
+    static class NotADAGException extends Exception {
+    }
+
+    static class Spreadsheet {
+        int rows;
+        int columns;
+        Term[][] terms;
+
+        public Spreadsheet(int rows, int columns, Term[][] terms) {
+            this.rows = rows;
+            this.columns = columns;
+            this.terms = terms;
+        }
+
+        private int cells() {
+            return rows * columns;
+        }
+
+        private int cellId(int row, int column) {
+            return row * columns + column;
+        }
+
+        private int[] cellIdToRowAndColumn(int cellId) {
+            return new int[]{cellId / columns, cellId % columns};
+        }
+
+        double[][] compute() throws NotADAGException {
+            // first build the graph with simpler nodes
+            int cells = cells();
+
+            // outgoing references
+            Map<Integer, Set<Integer>> out = new HashMap<>();
+
+            // income nodes counter
+            int[] in = new int[cells];
+
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < columns; c++) {
+                    int srcCellId = cellId(r, c);
+                    for (TermElement e : terms[r][c].elements) {
+                        if (e instanceof CellRef) {
+                            CellRef cellRef = (CellRef) e;
+                            int destCellId = cellId(cellRef.row, cellRef.column);
+
+                            // setup outgoing reference
+                            Set<Integer> outRefs = out.get(srcCellId);
+                            if (outRefs == null) {
+                                outRefs = new HashSet<>();
+                                out.put(srcCellId, outRefs);
+                            }
+
+
+                            if (outRefs.add(destCellId)) {
+                                // increase incoming counter
+                                in[destCellId]++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // now do the topological sort
+            List<Integer> sortedCellIds = new ArrayList<>();
+            Queue<Integer> q = new ArrayDeque<>();
+            for (int i = 0; i < cells; i++)
+                if (in[i] == 0)
+                    q.add(i);
+
+            while (!q.isEmpty()) {
+                Integer cellId = q.remove();
+                sortedCellIds.add(cellId);
+
+                Set<Integer> referencedCells = out.get(cellId);
+                if (referencedCells != null) {
+                    for (Integer cell : referencedCells) {
+                        if (--in[cell] == 0) {
+                            q.add(cell);
+                        }
+                    }
+                }
+            }
+
+            // if there's cells in cyclic ref
+            if (sortedCellIds.size() != cells)
+                throw new NotADAGException();
+
+            // now do resolving
+            Collections.reverse(sortedCellIds);
+            double[][] result = new double[rows][columns];
+
+            for (Integer cell : sortedCellIds) {
+                int[] rowAndColumn = cellIdToRowAndColumn(cell);
+                int row = rowAndColumn[0], column = rowAndColumn[1];
+                result[row][column] = terms[row][column].compute(result);
+            }
+
+            return result;
+
+        }
+    }
+
+    static TermElement parseElement(String w) {
+        char c0 = w.charAt(0);
+        if (c0 >= 'A' && c0 <= 'Z') {
+            return new CellRef(c0 - 'A', Integer.valueOf(w.substring(1)) - 1);
+        } else if (Character.isDigit(c0) ||
+                (c0 == '-' && Character.isDigit(w.charAt(w.length() - 1)))) {
+            return new Val(Integer.valueOf(w));
+        } else {
+            return Op.fromSymbol(w);
+        }
+    }
+
+    public static void main(String args[]) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        Scanner scanner = new Scanner(reader.readLine());
+        int columns = scanner.nextInt(), rows = scanner.nextInt();
+
+        Term[][] terms = new Term[rows][columns];
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < columns; c++) {
+                String line = reader.readLine();
+
+                Scanner lineScanner = new Scanner(line);
+                List<TermElement> termElements = new ArrayList<>();
+                while (lineScanner.hasNext()) {
+                    termElements.add(parseElement(lineScanner.next()));
+                }
+                terms[r][c] = new Term(termElements);
+            }
+        }
+
+        Spreadsheet spreadsheet = new Spreadsheet(rows, columns, terms);
+        double[][] result;
+        try {
+            result = spreadsheet.compute();
+        } catch (NotADAGException e) {
+            System.out.println("Error: Circular dependency!");
+            return;
+        }
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < columns; c++) {
+                System.out.println(String.format("%.5f", result[r][c]));
+            }
+        }
+    }
+}
